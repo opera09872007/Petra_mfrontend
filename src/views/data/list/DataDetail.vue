@@ -227,10 +227,7 @@
       };
       const getStatusOFContainText = async () => {
         const res = await getinfoContainTextApi(infoId.value);
-
-        if (res) {
-          regStr.value = generateRegex(res);
-        }
+        console.log(res);
       };
       const loading = ref(false);
       const contain_text = ref(false);

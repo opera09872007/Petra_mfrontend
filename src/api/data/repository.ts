@@ -24,10 +24,7 @@ export const repositoryDeleteApi = (repositoryId: number) =>
   defHttp.delete<void>({ url: Api.Repositories + repositoryId + '/' });
 
 export const getCateByResIdApi = (repositoryId: number) =>
-  defHttp.get<void>({ url: Api.Repositories + repositoryId + '/' + 'cate_tree/' });
-
-export const getCateByInfoIdApi = (repositoryId: number) =>
-  defHttp.get<void>({ url: Api.Repositories + repositoryId + '/' + 'cate_tree_by_info/' });
+  defHttp.get<void>({ url: Api.Repositories + repositoryId + '/' + 'cate-tree/' });
 
 export const setUserRepApi = (repositoryId: number) =>
-  defHttp.post<void>({ url: Api.Repositories + repositoryId + '/' + 'set_user_rep/' });
+  defHttp.post<void>({ url: Api.Repositories + repositoryId + '/' + 'set-user-rep/' });

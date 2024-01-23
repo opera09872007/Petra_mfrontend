@@ -22,4 +22,4 @@ export const roleDeleteApi = (roleId: number) =>
   defHttp.delete<void>({ url: Api.ROLES + roleId + '/' });
 
 export const setRoleStatus = (id: number, status: boolean) =>
-  defHttp.post({ url: Api.ROLES + id + '/setRoleStatus/', params: { status } });
+  defHttp.post({ url: Api.ROLES + id + '/set-role-status/', params: { status } });

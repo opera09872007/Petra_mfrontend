@@ -16,7 +16,7 @@
   import { InfoFormSchema } from '/@/views/data/list/list.data';
   import { infoDetailApi, infoEditApi } from '/@/api/data/info';
 
-  import { getCateByInfoIdApi } from '/@/api/data/repository';
+  import { getCateByInfoIdApi } from '/@/api/data/info';
 
   export default defineComponent({
     name: 'ListModal',

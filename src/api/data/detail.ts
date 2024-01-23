@@ -4,7 +4,7 @@ enum Api {
   Details = '/data/details/',
   file_revert = '/filepond/revert/',
   Proofread = '/data/details/proofread/',
-  imagedealtask = '/data/details/imagedealtask/',
+  imageDealTask = '/data/details/image-deal-task/',
 }
 import { DetailPageParams, DetailPageListGetResultModel } from '../model/dataModel';
 // Get personal center-basic settings
@@ -35,7 +35,7 @@ export const fileDeleteApi = (file_id: number) =>
 
 export const getImageDealTaskApi = (repositoryId: number, categoryId: number) =>
   defHttp.get<void>({
-    url: Api.imagedealtask + '?rep_id=' + repositoryId + '&cate_id=' + categoryId,
+    url: Api.imageDealTask + '?rep_id=' + repositoryId + '&cate_id=' + categoryId,
   });
 
 export const getProofreadApi = (repositoryId: number, categoryId: number, proofReadNum: string) =>
@@ -50,27 +50,27 @@ export const detailProofreadApi = (repositoryId: number, categoryId: number) =>
   });
 
 export const finishProofreadApi = (detailId: number) =>
-  defHttp.post<void>({ url: Api.Details + detailId + '/' + 'finish_proofread/' });
+  defHttp.post<void>({ url: Api.Details + detailId + '/' + 'finish-proofread/' });
 
 export const returnProofreadApi = (detailId: number, memo: string) =>
   defHttp.post<void>({
-    url: Api.Details + detailId + '/' + 'return_proofread/' + '?memo=' + memo,
+    url: Api.Details + detailId + '/' + 'return-proofread/' + '?memo=' + memo,
   });
 
 export const cancelReturnApi = (detailId: number) =>
-  defHttp.post<void>({ url: Api.Details + detailId + '/' + 'cancel_return/' });
+  defHttp.post<void>({ url: Api.Details + detailId + '/' + 'cancel-return/' });
 
 export const refreshProofreadApi = (detailId: number) =>
   defHttp.post<void>({
-    url: Api.Details + detailId + '/' + 'refresh_proofread/',
+    url: Api.Details + detailId + '/' + 'refresh-proofread/',
   });
 
 export const setkeyProofreadApi = (detailId: number, userId: number) =>
   defHttp.post<void>({
-    url: Api.Details + detailId + '/' + 'setkey_proofread/?id=' + userId,
+    url: Api.Details + detailId + '/' + 'set-key-proofread/?id=' + userId,
   });
 
 export const checkProofreadUniqueApi = (detailId: number, userId: number) =>
   defHttp.get<void>({
-    url: Api.Details + detailId + '/' + 'check_proofread_unique/?id=' + userId,
+    url: Api.Details + detailId + '/' + 'check-proofread-unique/?id=' + userId,
   });

@@ -1,8 +1,8 @@
 import { defHttp } from '/@/utils/http/axios';
 import { WorkflowTaskPageParams, WorkflowTaskPageListGetResultModel } from '../model/dataModel';
 enum Api {
-  TASKS = '/data/workflow_tasks/',
-  NODES = '/data/workflow_nodes/',
+  TASKS = '/data/workflow-tasks/',
+  NODES = '/data/workflow-nodes/',
 }
 
 // Get personal center-basic settings
@@ -23,6 +23,6 @@ export const getNodesByDetailIdApi = (detailId: number) =>
 
 export const finishTaskApi = (detailId: number, type?: number) =>
   defHttp.post<void>({
-    url: Api.TASKS + detailId + '/' + 'finish_task/',
+    url: Api.TASKS + detailId + '/' + 'finish-task/',
     params: { type: type },
   });

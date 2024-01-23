@@ -21,22 +21,28 @@ export const infoDeleteApi = (infoId: number) =>
   defHttp.delete<void>({ url: Api.Infos + infoId + '/' });
 
 export const infoGetPathNameApi = (infoId: number, type: number) =>
-  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'get_pathname/', params: { type: type } });
+  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'path-name/', params: { type: type } });
 
 export const finishUploadApi = (infoId: number, type?: number) =>
   defHttp.post<void>({
-    url: Api.Infos + infoId + '/' + 'finish_upload/',
+    url: Api.Infos + infoId + '/' + 'finish-upload/',
     params: { type: type },
   });
 
 export const infoDownLoadAllImageApi = (infoId: number, type: number) =>
-  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'download_all/', params: { type: type } });
+  defHttp.get<void>({
+    url: Api.Infos + infoId + '/' + 'download-all-pics/',
+    params: { type: type },
+  });
 
 export const infoResetStatusApi = (infoId: number) =>
-  defHttp.post<void>({ url: Api.Infos + infoId + '/' + 'reset_status/' });
+  defHttp.post<void>({ url: Api.Infos + infoId + '/' + 'reset-status/' });
 
 export const getinfoRepRegStrApi = (infoId: number) =>
-  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'get_reg_path/' });
+  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'get-reg-path/' });
 
 export const getinfoContainTextApi = (infoId: number) =>
-  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'get_contain_text/' });
+  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'get-contain-text/' });
+
+export const getCateByInfoIdApi = (infoId: number) =>
+  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'cate-tree/' });

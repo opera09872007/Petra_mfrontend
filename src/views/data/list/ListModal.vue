@@ -51,7 +51,6 @@
         isAdd.value = !!data?.isAdd;
         currentId = data?.currentId;
         repId = data?.repId;
-        cateId = data?.cateId;
         if (unref(isAdd)) {
           const infoData = await infoDetailApi(data.record.id);
 

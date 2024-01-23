@@ -17,7 +17,7 @@ export const sessionTimeoutApi = () => defHttp.post<void>({ url: Api.SESSION_TIM
 export const tokenExpiredApi = () => defHttp.post<void>({ url: Api.TOKEN_EXPIRED });
 
 export const disableAccountApi = (accountId: number) =>
-  defHttp.post<void>({ url: Api.ACCOUNT, params: accountId + '/disabledAccount/' });
+  defHttp.post<void>({ url: Api.ACCOUNT, params: accountId + '/disabled-account/' });
 
 export const accountAddApi = (datas: number[]) =>
   defHttp.post<void>({ url: Api.ACCOUNT, params: datas });
