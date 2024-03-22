@@ -11,7 +11,6 @@ export const useGlobSetting = (): Readonly<GlobConfig> => {
     VITE_GLOB_API_URL_PREFIX,
     VITE_GLOB_UPLOAD_URL,
     VITE_GLOB_RTF_UPLOAD_URL,
-    VITE_GLOB_FILE_UPLOAD_URL,
     VITE_GLOB_IMG_API_URL,
     VITE_GLOB_FILE_VIEW_API_URL,
   } = getAppEnvConfig();
@@ -28,9 +27,8 @@ export const useGlobSetting = (): Readonly<GlobConfig> => {
     apiUrl: VITE_GLOB_API_URL,
     shortName: VITE_GLOB_APP_SHORT_NAME,
     urlPrefix: VITE_GLOB_API_URL_PREFIX,
-    uploadUrl: VITE_GLOB_UPLOAD_URL,
+    imgUploadUrl: VITE_GLOB_UPLOAD_URL,
     rtfUploadUrl: VITE_GLOB_RTF_UPLOAD_URL,
-    fileuploadUrl: VITE_GLOB_FILE_UPLOAD_URL,
     imgUrl: VITE_GLOB_IMG_API_URL,
     fileviewUrl: VITE_GLOB_FILE_VIEW_API_URL,
   };

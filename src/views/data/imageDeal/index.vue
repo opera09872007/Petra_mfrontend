@@ -71,8 +71,8 @@
       const searchInfo = reactive<Recordable>({});
       const userStore = useUserStore();
 
-      searchInfo.now_handler_id = userStore.getUserInfo.userId;
-      searchInfo.rep_id = userStore.getUserInfo.now_work_repository;
+      searchInfo.nowHandlerId = userStore.getUserInfo.userId;
+      searchInfo.repId = userStore.getUserInfo.now_work_repository;
       searchInfo.status = '5';
       const Infodata = ref<Recordable[]>([]);
       const [registerTable, { reload }] = useTable({
@@ -104,7 +104,7 @@
         loading.value = true;
         searchInfo.repId = Number(useUserStore().getUserInfo.now_work_repository);
         try {
-          await getImageDealTaskApi(searchInfo.repId, searchInfo.cateId);
+          await getImageDealTaskApi(searchInfo.repId);
         } catch (error) {
           console.log(error);
         }

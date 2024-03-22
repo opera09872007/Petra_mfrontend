@@ -52,7 +52,7 @@
   </BasicModal>
 </template>
 <script lang="ts">
-  import { defineComponent, reactive, ref, toRefs, unref, computed, PropType } from 'vue';
+  import { defineComponent, reactive, ref, toRefs, unref, computed, PropType, watch } from 'vue';
   import { Upload, Alert, Tag } from 'ant-design-vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
   //   import { BasicTable, useTable } from '/@/components/Table';
@@ -70,6 +70,12 @@
   import FileList from './FileList.vue';
   import { useI18n } from '/@/hooks/web/useI18n';
   // import AWS from 'aws-sdk';
+  import {
+    createMultipartUpload,
+    getPresignedUrls,
+    completePart,
+    listParts,
+  } from '/@/api/S3Upload/upload';
 
   export default defineComponent({
     components: { BasicModal, Upload, Alert, FileList, [Tag.name]: Tag },
@@ -106,36 +112,6 @@
     },
     emits: ['change', 'register', 'delete'],
     setup(props, { emit }) {
-      // const minioClient2 = createMinioClient({
-      //   endPoint: props.endPoint,
-      //   port: 9000,
-      //   useSSL: false,
-      //   accessKey: props.accessKey,
-      //   secretKey: props.secretKey,
-      // });
-
-      // minioClient2.listBuckets().then((res) => {
-      //   console.log(res);
-      // });
-      // minioClient2.bucketExists(props.bucketName, function (err, exists) {
-      //   if (err) {
-      //     console.log(err);
-      //   }
-      //   if (!exists) {
-      //     createMessage.error('存储服务器连接失败（桶不存在）');
-      //   } else {
-      //   }
-      // });
-      // const minioClientest = new AWS.S3({
-      //   accessKeyId: props.accessKey,
-      //   computeChecksums: true,
-      //   secretAccessKey: props.secretKey,
-      //   endpoint: props.endPoint,
-      //   s3ForcePathStyle: true,
-      //   signatureVersion: 'v4',
-      //   sslEnabled: false,
-      // });
-
       const minioClient = window.getS3Object({
         accessKeyId: props.accessKey,
         computeChecksums: true,
@@ -145,25 +121,7 @@
         signatureVersion: 'v4',
         sslEnabled: false,
       });
-      // minioClient.config.update({
-      //   accessKeyId: props.accessKey,
-      //   computeChecksums: true,
-      //   secretAccessKey: props.secretKey,
-      //   endpoint: props.endPoint,
-      //   s3ForcePathStyle: true,
-      //   signatureVersion: 'v4',
-      //   sslEnabled: false,
-      // });
-      // var params = {
-      //   Bucket: props.bucketName,
-      // };
-      // minioClient.headBucket(
-      //   params,
-      //   function (err, data) {
-      //     if (err) console.log(err, err.stack); // an error occurred
-      //     else console.log(data); // successful response
-      //   },
-      // );
+
       const state = reactive<{ fileList: FileItem[] }>({
         fileList: [],
       });
@@ -175,7 +133,28 @@
       const fileNum = ref(fileListRef.value.length);
       const uploadedNum = ref(0);
       const errNum = ref(0);
-
+      watch(
+        fileListRef,
+        (newValue) => {
+          console.log('bianhua');
+          let calUploadedNum = 0;
+          let calErrNum = 0;
+          newValue.forEach((file) => {
+            if (file.status === UploadResultStatus.SUCCESS) {
+              calUploadedNum++;
+            }
+            if (file.status === UploadResultStatus.ERROR) {
+              calErrNum++;
+            }
+          });
+          uploadedNum.value = calUploadedNum;
+          errNum.value = calErrNum;
+          if (fileNum.value == uploadedNum.value + errNum.value) {
+            isUploadingRef.value = false;
+          }
+        },
+        { deep: true },
+      );
       const { accept, helpText, maxNumber, maxSize, minSize } = toRefs(props);
 
       const { t } = useI18n();
@@ -289,12 +268,6 @@
             createMessage.warning(t('component.upload.uploadWait'));
             return;
           }
-          if (record.status == UploadResultStatus.SUCCESS) {
-            uploadedNum.value--;
-          }
-          if (record.status == UploadResultStatus.ERROR) {
-            errNum.value--;
-          }
           var deleteParams = {
             Bucket: record.Bucket,
             Key: record.Key,
@@ -329,366 +302,47 @@
 
       // 重试
       async function handleRetry(record: FileItem) {
-        var params = {
-          Bucket: props.bucketName,
-          Key: props.pathName + record.file.name,
-          UploadId: record.UploadId,
-        };
-        let multipartCreateResult = await minioClient.listParts(params).promise();
-        multipartCreateResult.Parts?.map(() => {});
-        let arr = Array.from(record.chunkList, (data) => {
-          return data.index;
-        });
-        let arr2 = Array.from(multipartCreateResult.Parts, (data) => {
-          return data.PartNumber;
-        });
-        let arr3 = distinct(arr, arr2);
-
-        var arr4: { index: number; source: File; size: number }[] = [];
-
-        record.chunkList?.forEach((data) => {
-          if (arr3.includes(data.index)) {
-            arr4.push({
-              index: data.index,
-              source: data.source,
-              size: data.size,
-            });
+        // let multipartCreateResult = await minioClient.listParts(params).promise();
+        if (record.UploadId && record.chunkList) {
+          let multipartCreateResult = await listParts({
+            bucketName: props.bucketName,
+            objectName: props.pathName + record.file.name,
+            uploadId: record.UploadId,
+            partCount: record.chunkList.length,
+          });
+          // multipartCreateResult.Parts?.map(() => {});
+          let arr = Array.from(record.chunkList, (data) => {
+            return data.index;
+          });
+          const arr2 = [];
+          for (const key in multipartCreateResult.Parts) {
+            console.log(multipartCreateResult.Parts[key].PartNumber);
+            arr2.push(multipartCreateResult.Parts[key].PartNumber);
           }
-        });
-        record.remainingChunkList = arr4;
-        uploadApiByItem3([record], -1);
+          let arr3 = distinct(arr, arr2);
+
+          var arr4: { index: number; source: File; size: number }[] = [];
+
+          record.chunkList?.forEach((data) => {
+            if (arr3.includes(data.index)) {
+              arr4.push({
+                index: data.index,
+                source: data.source,
+                size: data.size,
+                preUrl: data.preUrl,
+              });
+            }
+          });
+          record.remainingChunkList = arr4;
+          try {
+            record.status = '';
+            uploadApiByItem3([record], 0);
+            // resendFile(record);
+          } catch (e) {
+            uploadApiByItem3([record], 0);
+          }
+        }
       }
-
-      // async function uploadApiByItem(item: FileItem) {
-      //   try {
-      //     // item.status = UploadResultStatus.UPLOADING;
-      //     // minioClient2.presignedPutObject(
-      //     //   props.bucketName,
-      //     //   props.pathName + item.name,
-      //     //   24 * 60 * 60,
-      //     //   function (err, presignedUrl) {
-      //     //     if (err) {
-      //     //       console.log(err);
-      //     //       item.status = UploadResultStatus.ERROR;
-      //     //       isUploadingRef.value = false;
-      //     //       return {
-      //     //         success: false,
-      //     //         error: err,
-      //     //       };
-      //     //     } else {
-      //     //       let reader = new FileReader();
-      //     //       reader.readAsDataURL(item.file);
-      //     //       var blob = dataURItoBlob(reader);
-      //     //       readBlob(blob, 'ArrayBuffer').then((res) => {
-      //     //         console.log(res);
-      //     //       });
-      //     //       console.log(item.file);
-      //     //       minioClient2.putObject(
-      //     //         props.bucketName,
-      //     //         props.pathName + item.name,
-      //     //         reader.result,
-      //     //         item.size,
-      //     //         function (err, etag) {
-      //     //           return console.log(err, etag); // err should be null
-      //     //         },
-      //     //       );
-      //     //       // var formData = new FormData();
-      //     //       // formData.append('file', item.file);
-      //     //       // let http = new XMLHttpRequest();
-      //     //       // http.upload.addEventListener('progress', function (e) {
-      //     //       //   var progressRate = Math.round((e.loaded / e.total) * 100) + '%';
-      //     //       //   console.log('fileName:', presignedUrl, 'uploaded:', progressRate);
-      //     //       // });
-      //     //       // http.onload = () => {
-      //     //       //   if ((http.status === 200 && http.status < 300) || http.status === 304) {
-      //     //       //     try {
-      //     //       //       const result = http.responseURL;
-      //     //       //       console.log(result);
-      //     //       //     } catch (error) {}
-      //     //       //   }
-      //     //       // };
-      //     //       // http.open('PUT', presignedUrl, true);
-      //     //       // //加入头信息
-      //     //       // // Object.keys(customHeader).forEach((key, index) => {
-      //     //       // //   http.setRequestHeader(key, customHeader[key]);
-      //     //       // // });
-      //     //       // http.send(item.file);
-      //     //     }
-      //     //   },
-      //     // );
-      //     // var params = {
-      //     //   Bucket: props.bucketName,
-      //     //   Key: props.pathName + item.name,
-      //     //   Body: item.file,
-      //     // };
-      //     // var upload = await minioClient.upload(params, {}).on('httpUploadProgress', function (e) {
-      //     //   var percent = ((parseInt(e.loaded, 10) / parseInt(e.total, 10)) * 100) | 0;
-      //     //   isUploadingRef.value = true;
-      //     //   // data.onProgress({ percent: percent });
-      //     //   item.percent = percent;
-      //     // });
-      //     // await upload.send(function (err, data2) {
-      //     //   if (err) {
-      //     //     console.log(err);
-      //     //     item.status = UploadResultStatus.ERROR;
-      //     //     isUploadingRef.value = false;
-      //     //     return {
-      //     //       success: false,
-      //     //       error: err,
-      //     //     };
-      //     //   } else {
-      //     //     isUploadingRef.value = false;
-      //     //     // data.onSuccess(data2, item.file);
-      //     //     item.status = UploadResultStatus.SUCCESS;
-      //     //     item.responseData = {
-      //     //       message: 'success',
-      //     //       code: 200,
-      //     //       url: data2.Location,
-      //     //       Bucket: data2.Bucket,
-      //     //       Key: data2.Key,
-      //     //     };
-      //     //     item.Bucket = data2.Bucket;
-      //     //     item.Key = data2.Key;
-      //     //     return {
-      //     //       success: true,
-      //     //       error: null,
-      //     //     };
-      //     //   }
-      //     // });
-      //     var params = {
-      //       Bucket: props.bucketName,
-      //       Key: props.pathName + item.name,
-      //     };
-      //     let multipartCreateResult = await minioClient.createMultipartUpload(params).promise();
-      //     item.UploadId = multipartCreateResult.UploadId;
-      //     item.status = UploadResultStatus.UPLOADING;
-      //     var uploadPartResults = [];
-      //     let num = 0;
-      //     let size = 0;
-
-      //     item.chunkList.forEach((chunk, index) => {
-      //       Promise.all([
-      //         minioClient
-      //           .uploadPart({
-      //             Body: chunk.source,
-      //             Bucket: props.bucketName,
-      //             Key: multipartCreateResult.Key,
-      //             PartNumber: chunk.index,
-      //             UploadId: multipartCreateResult.UploadId,
-      //           })
-      //           .promise()
-      //           .then((data, err) => {
-      //             if (err) console.log(err);
-      //             else {
-      //               size += chunk.size;
-      //               var percent = ((parseInt(size) / parseInt(item.size)) * 100) | 0;
-      //               isUploadingRef.value = true;
-      //               // data.onProgress({ percent: percent });
-      //               item.percent = percent;
-      //               num++;
-      //               uploadPartResults.push({
-      //                 PartNumber: chunk.index,
-      //                 ETag: data.ETag,
-      //               });
-      //             }
-      //           }),
-      //       ])
-      //         .then(() => {
-      //           if (num === item.chunkList.length) {
-      //             const array = new Array(uploadPartResults.length - 1).fill('');
-      //             uploadPartResults.map((data) => {
-      //               array[data.PartNumber] = data.ETag;
-      //             });
-      //             uploadPartResults = [];
-      //             array.map((data, index) => {
-      //               uploadPartResults.push({
-      //                 PartNumber: index,
-      //                 ETag: data,
-      //               });
-      //             });
-      //             var params = {
-      //               Bucket: props.bucketName,
-      //               Key: multipartCreateResult.Key,
-      //               UploadId: multipartCreateResult.UploadId,
-      //               MultipartUpload: {
-      //                 Parts: uploadPartResults,
-      //               },
-      //             };
-      //             minioClient.completeMultipartUpload(params, function (err, data) {
-      //               if (err) {
-      //                 return {
-      //                   success: false,
-      //                   error: err,
-      //                 };
-      //               } else {
-      //                 isUploadingRef.value = false;
-      //                 // data.onSuccess(data2, item.file);
-      //                 item.status = UploadResultStatus.SUCCESS;
-      //                 item.responseData = {
-      //                   message: 'success',
-      //                   code: 200,
-      //                   url: data.Location,
-      //                   Bucket: data.Bucket,
-      //                   Key: data.Key,
-      //                 };
-      //                 item.Bucket = data.Bucket;
-      //                 item.Key = data.Key;
-      //                 return {
-      //                   success: true,
-      //                   error: null,
-      //                 };
-      //               }
-      //             });
-      //           }
-      //         })
-      //         .catch(() => {
-      //           //错误操作
-      //         });
-      //     });
-
-      //     // minioClient.createPresignedPost({ Bucket: props.bucketName }, function (err, data) {
-      //     //   if (err) console.log(err, err.stack); // an error occurred
-      //     //   else {
-      //     //     console.log(111);
-
-      //     //     console.log(data);
-      //     //   } // successful response
-      //     // });
-      //     // minioClient.createMultipartUpload(params, function (err, data) {
-      //     //   if (err) console.log(err, err.stack); // an error occurred
-      //     //   else console.log(data); // successful response
-      //     // });
-      //   } catch (e) {
-      //     item.status = UploadResultStatus.ERROR;
-      //     return {
-      //       success: false,
-      //       error: e,
-      //     };
-      //   }
-      // }
-      // async function uploadApiByItem2(uploadFileList: FileItem[], count: number) {
-      //   if (count > uploadFileList.length) return;
-      //   let loop_num = count;
-      //   var item = uploadFileList[loop_num];
-      //   try {
-      //     for (let index = 1; index < 5; index++) {
-      //       if (uploadFileList.length - loop_num > index) {
-      //         uploadApiByItem(uploadFileList[loop_num + index]);
-      //       }
-      //     }
-      //     loop_num += 5;
-      //     var params = {
-      //       Bucket: props.bucketName,
-      //       Key: props.pathName + item.name,
-      //     };
-      //     let multipartCreateResult = await minioClient.createMultipartUpload(params).promise();
-      //     item.UploadId = multipartCreateResult.UploadId;
-      //     item.status = UploadResultStatus.UPLOADING;
-      //     var uploadPartResults = [];
-      //     let num = 0;
-      //     let size = 0;
-
-      //     item.chunkList.forEach((chunk) => {
-      //       Promise.all([
-      //         minioClient
-      //           .uploadPart({
-      //             Body: chunk.source,
-      //             Bucket: props.bucketName,
-      //             Key: multipartCreateResult.Key,
-      //             PartNumber: chunk.index,
-      //             UploadId: multipartCreateResult.UploadId,
-      //           })
-      //           .promise()
-      //           .then((data, err) => {
-      //             if (err) console.log(err);
-      //             else {
-      //               size += chunk.size;
-      //               var percent = ((parseInt(size) / parseInt(item.size)) * 100) | 0;
-      //               isUploadingRef.value = true;
-      //               // data.onProgress({ percent: percent });
-      //               item.percent = percent;
-      //               num++;
-      //               uploadPartResults.push({
-      //                 PartNumber: chunk.index,
-      //                 ETag: data.ETag,
-      //               });
-      //             }
-      //           }),
-      //       ])
-      //         .then(() => {
-      //           if (num === item.chunkList.length) {
-      //             const array = new Array(uploadPartResults.length - 1).fill('');
-      //             uploadPartResults.map((data) => {
-      //               array[data.PartNumber] = data.ETag;
-      //             });
-      //             uploadPartResults = [];
-      //             array.map((data, index) => {
-      //               uploadPartResults.push({
-      //                 PartNumber: index,
-      //                 ETag: data,
-      //               });
-      //             });
-      //             var params = {
-      //               Bucket: props.bucketName,
-      //               Key: multipartCreateResult.Key,
-      //               UploadId: multipartCreateResult.UploadId,
-      //               MultipartUpload: {
-      //                 Parts: uploadPartResults,
-      //               },
-      //             };
-      //             minioClient.completeMultipartUpload(params, function (err, data) {
-      //               if (err) {
-      //                 return {
-      //                   success: false,
-      //                   error: err,
-      //                 };
-      //               } else {
-      //                 isUploadingRef.value = false;
-      //                 // data.onSuccess(data2, item.file);
-      //                 item.status = UploadResultStatus.SUCCESS;
-      //                 item.responseData = {
-      //                   message: 'success',
-      //                   code: 200,
-      //                   url: data.Location,
-      //                   Bucket: data.Bucket,
-      //                   Key: data.Key,
-      //                 };
-      //                 item.Bucket = data.Bucket;
-      //                 item.Key = data.Key;
-      //                 uploadApiByItem2(uploadFileList, loop_num);
-      //                 return {
-      //                   success: true,
-      //                   error: null,
-      //                 };
-      //               }
-      //             });
-      //           }
-      //         })
-      //         .catch(() => {
-      //           //错误操作
-      //         });
-      //     });
-
-      //     // minioClient.createPresignedPost({ Bucket: props.bucketName }, function (err, data) {
-      //     //   if (err) console.log(err, err.stack); // an error occurred
-      //     //   else {
-      //     //     console.log(111);
-
-      //     //     console.log(data);
-      //     //   } // successful response
-      //     // });
-      //     // minioClient.createMultipartUpload(params, function (err, data) {
-      //     //   if (err) console.log(err, err.stack); // an error occurred
-      //     //   else console.log(data); // successful response
-      //     // });
-      //   } catch (e) {
-      //     item.status = UploadResultStatus.ERROR;
-      //     return {
-      //       success: false,
-      //       error: e,
-      //     };
-      //   }
-      // }
       async function uploadApiByItem3(uploadFileList: FileItem[], count: number) {
         if (count >= uploadFileList.length) return;
 
@@ -715,36 +369,31 @@
           return;
         }
         // if (count != -1) uploadApiByItem3(uploadFileList, loop_num);
-        var Key;
-        var UploadId;
         let uploaded_arr = [];
         let length;
         let size;
 
         if (item.Key == undefined && item.UploadId == undefined) {
-          let multipartCreateResult = await minioClient
-            .createMultipartUpload({
-              Bucket: props.bucketName,
-              Key: props.pathName + item.name,
-              ContentType: item.type,
-            })
-            .promise()
-            .catch((err) => {
-              console.log(err);
-            });
-
-          item.UploadId = multipartCreateResult.UploadId;
-          item.Key = multipartCreateResult.Key;
-          UploadId = multipartCreateResult.UploadId;
-          Key = multipartCreateResult.Key;
-          uploaded_arr = item.chunkList.map((item) => {
-            return item;
+          let multipartCreateResult = await createMultipartUpload({
+            bucketName: props.bucketName,
+            objectName: props.pathName + item.name,
           });
+          item.UploadId = multipartCreateResult;
+          item.Key = props.pathName + item.name;
+
           length = item.chunkList.length;
+          var PresignedUrls = await getPresignedUrls({
+            bucketName: props.bucketName,
+            objectName: props.pathName + item.name,
+            partCount: length,
+            uploadId: item.UploadId,
+          });
+          uploaded_arr = item.chunkList.map((chunk) => {
+            chunk['preUrl'] = PresignedUrls[chunk.index];
+            return chunk;
+          });
           size = 0;
         } else {
-          Key = item.Key;
-          UploadId = item.UploadId;
           uploaded_arr = item.remainingChunkList.map((item) => {
             return item;
           });
@@ -757,97 +406,72 @@
         if (item.UploadId != undefined) {
           const fn = (chunk) =>
             new Promise((resolve, reject) =>
-              minioClient.uploadPart(
-                {
-                  Body: chunk.source,
-                  Bucket: props.bucketName,
-                  Key: Key,
-                  PartNumber: chunk.index,
-                  UploadId: UploadId,
-                },
-                (err, res) => {
-                  if (err) {
-                    reject(err);
-                    console.log(err);
-                    item.status = UploadResultStatus.ERROR;
-                    errNum.value++;
-                  } else {
-                    resolve([res, chunk]);
-                  }
-                },
-              ),
+              fetch(chunk.preUrl, {
+                method: 'PUT',
+                body: chunk.source,
+              })
+                .then((res) => {
+                  resolve([res, chunk]);
+                })
+                .catch((err) => {
+                  reject(err);
+                  console.log(err);
+                  item.status = UploadResultStatus.ERROR;
+                }),
             );
 
           let num = 0;
-          var uploadPartResults: { PartNumber: number; ETag: string }[] = [];
           for await (const res of asyncPool(connect_num, uploaded_arr, fn)) {
             num++;
-            if ('ETag' in res[0]) {
+            if (res[0].ok) {
               size += res[1].size;
               var percent = ((parseInt(size) / parseInt(item.size)) * 100) | 0;
               isUploadingRef.value = true;
               // data.onProgress({ percent: percent });
               item.percent = percent;
-              uploadPartResults.push({
-                PartNumber: res[1].index,
-                ETag: res[0].ETag,
-              });
             } else {
               item.status = UploadResultStatus.ERROR;
             }
             if (num == length) {
               if (item.status == UploadResultStatus.UPLOADING) {
-                const array = new Array(uploadPartResults.length - 1).fill('');
-                uploadPartResults.map((data) => {
-                  array[data.PartNumber] = data.ETag;
-                });
-                uploadPartResults = [];
-                array.map((data, index) => {
-                  uploadPartResults.push({
-                    PartNumber: index,
-                    ETag: data,
-                  });
-                });
-                minioClient.completeMultipartUpload(
-                  {
-                    Bucket: props.bucketName,
-                    Key: Key,
-                    UploadId: UploadId,
-                    MultipartUpload: {
-                      Parts: uploadPartResults,
-                    },
-                  },
-                  function (err, data) {
-                    if (err) {
-                      return {
-                        success: false,
-                        error: err,
-                      };
-                    } else {
-                      uploadedNum.value++;
-                      if (fileNum.value == uploadedNum.value + errNum.value) {
-                        isUploadingRef.value = false;
-                      }
+                await completePart({
+                  bucketName: props.bucketName,
+                  objectName: props.pathName + item.name,
+                  uploadId: item.UploadId,
+                  partCount: item.chunkList.length,
+                })
+                  .then((res) => {
+                    console.log(res);
+                    if (res == 'ok') {
                       // data.onSuccess(data2, item.file);
                       item.status = UploadResultStatus.SUCCESS;
                       item.responseData = {
                         message: 'success',
                         code: 200,
-                        url: data.Location,
-                        Bucket: data.Bucket,
-                        Key: data.Key,
+                        url: item.Key,
+                        Bucket: props.bucketName,
+                        Key: item.Key,
                       };
-                      item.Bucket = data.Bucket;
-                      item.Key = data.Key;
+                      item.Bucket = props.bucketName;
 
                       if (count != -1) uploadApiByItem3(uploadFileList, loop_num);
                       return {
                         success: true,
                         error: null,
                       };
+                    } else {
+                      return {
+                        success: false,
+                        error: '文件合并错误',
+                      };
                     }
-                  },
-                );
+                  })
+                  .catch((err) => {
+                    return {
+                      success: false,
+                      error: err,
+                    };
+                  });
               } else {
                 return {
                   success: false,
@@ -860,6 +484,7 @@
           item.status = UploadResultStatus.ERROR;
         }
       }
+
       // 点击开始上传
       async function handleStartUpload() {
         const { maxNumber } = props;
@@ -869,20 +494,18 @@
         try {
           isClickSaveButton.value = false;
           isUploadingRef.value = true;
-          // 只上传不是成功状态的
-          // const uploadFileList =
-          //   fileListRef.value.filter((item) => item.status !== UploadResultStatus.SUCCESS) || [];
-
-          // uploadApiByItem2(uploadFileList, 0);
-
-          uploadApiByItem3(fileListRef.value, 0);
-          // const data = await Promise.all(
-          //   uploadFileList.map((item) => {
-          //     return uploadApiByItem(item);
-          //   }),
-          // ).then((values) => {
-          //   console.log(111);
-          // });
+          const someError = fileListRef.value.some(
+            (item) => item.status === UploadResultStatus.ERROR,
+          );
+          if (someError) {
+            var errFileListRef: FileItem[] = fileListRef.value.filter(
+              (file: FileItem) => file.status === UploadResultStatus.ERROR,
+            );
+            //todo 重写全部重新上传
+            console.log(errFileListRef);
+          } else {
+            uploadApiByItem3(fileListRef.value, 0);
+          }
         } catch (e) {
           isUploadingRef.value = false;
           throw e;
@@ -959,86 +582,6 @@
           errNum.value = 0;
           return true;
         }
-        // if (!isUploadingRef.value) {
-        //   let length = 0;
-        //   fileListRef.value.map(async (item, index) => {
-        //     if (item.status == UploadResultStatus.SUCCESS) {
-        //       length++;
-        //     }
-        //   });
-        //   // fileListRef.value = [];
-        //   var arr: number[] = [];
-        //   let count = 0;
-        //   // let promises = fileListRef.value.map(async (item) => {
-        //   //   return minioClient
-        //   //     .deleteObject({
-        //   //       Bucket: item.Bucket,
-        //   //       Key: item.Key,
-        //   //     })
-        //   //     .promise()
-        //   //     .then(function (data) {
-        //   //       console.log('Uploadedd1234');
-        //   //     });
-        //   // });
-
-        //   // Promise.all(promises)
-        //   //   .then(function (data) {
-        //   //     console.log('Uploadedd');
-        //   //   })
-        //   //   .catch(function (err) {
-        //   //     console.log(55555);
-        //   //     console.log(err);
-        //   //   });
-
-        //   fileListRef.value.map(async (item, index) => {
-        //     if (item.status == UploadResultStatus.SUCCESS) {
-        //       await minioClient
-        //         .deleteObject({
-        //           Bucket: item.Bucket,
-        //           Key: item.Key,
-        //         })
-        //         .promise()
-        //         .then(function (data) {
-        //           count++;
-        //           arr.push(index);
-        //           if (count == length) {
-        //             fileListRef.value = [];
-        //           }
-        //         })
-        //         .catch((err) => {
-        //           arr.sort((a, b) => {
-        //             return b - a;
-        //           });
-        //           arr.map((data, index) => {
-        //             fileListRef.value.splice(data, 1);
-        //           });
-        //           createMessage.warning(t('component.upload.delError'));
-        //           return false;
-        //         });
-        //     }
-        //   });
-        //   // const fn = (item) => {
-        //   //   new Promise((resolve, react) => {
-        //   //     minioClient.deleteObject({ Bucket: item.Bucket, Key: item.Key }, () => {
-        //   //       resolve(item);
-        //   //     });
-        //   //   });
-        //   // };
-        //   // let uploaded_arr = fileListRef.value.map((item) => {
-        //   //   if (item.status == UploadResultStatus.SUCCESS) {
-        //   //     return item;
-        //   //   }
-        //   // });
-        //   // for await (const item of asyncPool(4, uploaded_arr, fn)) {
-        //   //   console.log(item);
-        //   // }
-        //   if (fileListRef.value.length <= 0) {
-        //     return true;
-        //   }
-        // } else {
-        //   createMessage.warning(t('component.upload.uploadWait'));
-        //   return false;
-        // }
       }
       function deleteAll() {
         let arr: number[] = [];
@@ -1054,9 +597,6 @@
           fileListRef.value.splice(data, 1);
         });
         fileNum.value = fileListRef.value.length;
-        // const index = fileListRef.value.findIndex((item) => item.uuid === record.uuid);
-        // index !== -1 && fileListRef.value.splice(index, 1);
-        // emit('delete', record);
       }
 
       return {

@@ -17,7 +17,7 @@
   import { BasicModal, useModalInner } from '/@/components/Modal';
 
   import { useMessage } from '/@/hooks/web/useMessage';
-  import { detailAddApi, detailEditApi, fileDeleteApi } from '/@/api/data/detail';
+  import { detailAddApi, detailEditApi } from '/@/api/data/detail';
 
   export default defineComponent({
     name: 'DetailModal',
@@ -122,7 +122,8 @@
           ProcessFile.value.serverId != undefined &&
           ProcessFile.value.serverId != null
         ) {
-          await fileDeleteApi(ProcessFile.value.serverId);
+          //todo
+          console.log('删除文件');
         }
       }
       return {

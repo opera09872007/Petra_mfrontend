@@ -2,7 +2,6 @@ import { defHttp } from '/@/utils/http/axios';
 
 enum Api {
   Details = '/data/details/',
-  file_revert = '/filepond/revert/',
   Proofread = '/data/details/proofread/',
   imageDealTask = '/data/details/image-deal-task/',
 }
@@ -24,29 +23,19 @@ export const detailDetailApi = (detailId: number) =>
 export const detailDeleteApi = (detailId: number[], type: number) =>
   defHttp.delete<void>({ url: Api.Details + detailId + '/', params: { type: type } });
 
-export const fileDeleteApi = (file_id: number) =>
-  defHttp.delete<void>({
-    url: Api.file_revert,
-    data: file_id,
-    headers: {
-      'Content-type': 'text/plain',
-    },
+export const getImageDealTaskApi = (repositoryId: number) =>
+  defHttp.get<void>({
+    url: Api.imageDealTask + '?repId=' + repositoryId,
   });
 
-export const getImageDealTaskApi = (repositoryId: number, categoryId: number) =>
+export const getProofreadApi = (repositoryId: number, proofReadNum: string) =>
   defHttp.get<void>({
-    url: Api.imageDealTask + '?rep_id=' + repositoryId + '&cate_id=' + categoryId,
-  });
-
-export const getProofreadApi = (repositoryId: number, categoryId: number, proofReadNum: string) =>
-  defHttp.get<void>({
-    url:
-      Api.Proofread + '?rep_id=' + repositoryId + '&cate_id=' + categoryId + '&num=' + proofReadNum,
+    url: Api.Proofread + '?repId=' + repositoryId + '&num=' + proofReadNum,
   });
 
 export const detailProofreadApi = (repositoryId: number, categoryId: number) =>
   defHttp.get<void>({
-    url: Api.Proofread + '?rep_id=' + repositoryId + '&cate_id=' + categoryId,
+    url: Api.Proofread + '?repId=' + repositoryId + '&cateId=' + categoryId,
   });
 
 export const finishProofreadApi = (detailId: number) =>

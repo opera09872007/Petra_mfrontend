@@ -459,7 +459,7 @@ export const InfoFormSchema: FormSchema[] = [
     render: ({ model, field }) => {
       return h(Tinymce, {
         value: model[field],
-        showImageUpload: false,
+        showImageUpload: true,
         toolbar: toolbar,
         plugins: plugins,
         onChange: (value: string) => {

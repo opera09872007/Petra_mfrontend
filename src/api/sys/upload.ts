@@ -3,7 +3,7 @@ import { defHttp } from '/@/utils/http/axios';
 import { UploadFileParams } from '/#/axios';
 import { useGlobSetting } from '/@/hooks/setting';
 
-const { rtfUploadUrl = '', uploadUrl = '' } = useGlobSetting();
+const { rtfUploadUrl = '', imgUploadUrl = '' } = useGlobSetting();
 
 /**
  * @description: Upload interface
@@ -14,14 +14,14 @@ export function uploadApi(
 ) {
   return defHttp.uploadFile<UploadApiResult>(
     {
-      url: uploadUrl,
+      url: imgUploadUrl,
       onUploadProgress,
     },
     params,
   );
 }
 
-export function rtfuploadApi(
+export function rtfUploadApi(
   params: UploadFileParams,
   onUploadProgress: (progressEvent: ProgressEvent) => void,
 ) {

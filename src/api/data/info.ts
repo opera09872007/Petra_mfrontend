@@ -39,10 +39,10 @@ export const infoResetStatusApi = (infoId: number) =>
   defHttp.post<void>({ url: Api.Infos + infoId + '/' + 'reset-status/' });
 
 export const getinfoRepRegStrApi = (infoId: number) =>
-  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'get-reg-path/' });
+  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'reg-path/' });
 
 export const getinfoContainTextApi = (infoId: number) =>
-  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'get-contain-text/' });
+  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'contain-text/' });
 
 export const getCateByInfoIdApi = (infoId: number) =>
   defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'cate-tree/' });

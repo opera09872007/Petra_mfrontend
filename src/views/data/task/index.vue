@@ -33,7 +33,7 @@
       const go = useGo();
       const userStore = useUserStore();
       const searchInfo = reactive<Recordable>({});
-      searchInfo.rep_id = userStore.getUserInfo.now_work_repository;
+      searchInfo.repId = userStore.getUserInfo.now_work_repository;
       const [registerModal, {}] = useModal();
       const [registerTable, { reload }] = useTable({
         title: '任务列表',

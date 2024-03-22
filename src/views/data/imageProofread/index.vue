@@ -101,8 +101,8 @@
       const searchInfo = reactive<Recordable>({});
       const userStore = useUserStore();
 
-      searchInfo.now_handler_id = userStore.getUserInfo.userId;
-      searchInfo.rep_id = userStore.getUserInfo.now_work_repository;
+      searchInfo.nowHandlerId = userStore.getUserInfo.userId;
+      searchInfo.repId = userStore.getUserInfo.now_work_repository;
       searchInfo.status = '1';
 
       const Infodata = ref<Recordable[]>([]);
@@ -137,7 +137,7 @@
         searchInfo.repId = Number(useUserStore().getUserInfo.now_work_repository);
 
         try {
-          await getProofreadApi(searchInfo.repId, searchInfo.cateId, proofread_count.value);
+          await getProofreadApi(searchInfo.repId, proofread_count.value);
         } catch (error) {
           console.log(error);
         }

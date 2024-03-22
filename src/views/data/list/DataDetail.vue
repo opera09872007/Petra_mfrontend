@@ -177,11 +177,11 @@
       const tableData = ref([]);
       const searchInfo = reactive<Recordable>({});
       searchInfo.infoId = infoId.value;
-      searchInfo.detail_id = detail_id.value;
+      searchInfo.detailId = detail_id.value;
       searchInfo.type = 0;
       const searchInfo2 = reactive<Recordable>({});
       searchInfo2.infoId = infoId.value;
-      searchInfo2.detail_id = detail_id.value;
+      searchInfo2.detailId = detail_id.value;
       searchInfo2.type = 1;
       const Infodata = ref<Recordable[]>([]);
       const detailData = ref<Recordable[]>([]);
@@ -287,7 +287,7 @@
           isUpdate: false,
           currentId: '',
           infoId: searchInfo.infoId,
-          detail_id: searchInfo.detail_id,
+          detail_id: searchInfo.detailId,
         });
       }
       function handleEdit(record: Recordable) {
@@ -307,7 +307,7 @@
                   content: data.Body.toString('utf-8'),
                   currentId: record.id,
                   infoId: searchInfo.infoId,
-                  detail_id: searchInfo.detail_id,
+                  detail_id: searchInfo.detailId,
                 });
               }
             },
@@ -319,7 +319,7 @@
             content: '',
             currentId: record.id,
             infoId: searchInfo.infoId,
-            detail_id: searchInfo.detail_id,
+            detail_id: searchInfo.detailId,
           });
         }
       }

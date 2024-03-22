@@ -14,8 +14,8 @@ enum Api {
   AccountList = '/users/',
   IsAccountExist = '/auth/accountExist/',
   DeptList = '/organizations/tree/',
-  MenuList = '/menus/tree_list/',
-  PermissionList = '/permissions/permission_list/',
+  MenuList = '/menus/tree-list/',
+  PermissionList = '/permissions/permission-list/',
   GetAllRoleList = '/roles/',
 }
 

@@ -14,7 +14,7 @@ export const getTaskDetailApi = (taskId: number) =>
   defHttp.get<void>({ url: Api.TASKS + taskId + '/' });
 
 export const getNodesByDetailIdApi = (detailId: number) =>
-  defHttp.get<void>({ url: Api.NODES + '?detail_id=' + detailId });
+  defHttp.get<void>({ url: Api.NODES + '?detailId=' + detailId });
 
 // export const finishTaskApi = (infoId: number, detailId: number) =>
 //   defHttp.post<void>({

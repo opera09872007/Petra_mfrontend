@@ -141,9 +141,8 @@ export interface GlobConfig {
   // Service interface url
   apiUrl: string;
   // Upload url
-  uploadUrl?: string;
+  imgUploadUrl?: string;
   rtfUploadUrl?: string;
-  fileuploadUrl?: string;
   //  Service interface url prefix
   urlPrefix?: string;
   // Project abbreviation
@@ -165,7 +164,6 @@ export interface GlobEnvConfig {
   // Upload url
   VITE_GLOB_UPLOAD_URL?: string;
   VITE_GLOB_RTF_UPLOAD_URL?: string;
-  VITE_GLOB_FILE_UPLOAD_URL?: string;
   // Img url
   VITE_GLOB_IMG_API_URL?: string;
   // fileview

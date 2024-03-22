@@ -42,7 +42,7 @@
   import { BasicModal, useModalInner } from '/@/components/Modal';
   import { BasicForm, useForm } from '/@/components/Form/index';
   import { detailFormSchema } from './list.data';
-  import { detailAddApi, detailEditApi, fileDeleteApi } from '/@/api/data/detail';
+  import { detailAddApi, detailEditApi } from '/@/api/data/detail';
   import { useI18n } from '/@/hooks/web/useI18n';
   import { useGlobSetting } from '/@/hooks/setting';
   import { renderAsync } from 'docx-preview';
@@ -274,7 +274,8 @@
           ProcessFile.value.serverId != undefined &&
           ProcessFile.value.serverId != null
         ) {
-          await fileDeleteApi(ProcessFile.value.serverId);
+          //todo
+          console.log('删除文件');
         }
       }
       return {
