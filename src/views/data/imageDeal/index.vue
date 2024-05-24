@@ -1,20 +1,23 @@
 <template>
   <PageWrapper dense contentFullHeight fixedHeight contentClass="flex">
-    <BasicTable
-      @register="registerTable"
-      :searchInfo="searchInfo"
-      :current="current"
-      :pagination="{
-        current: current,
-      }"
-      @change="handleTableChange"
-    >
+    <BasicTable @register="registerTable" :searchInfo="searchInfo">
       <template #toolbar>
+        <a-select
+          v-model:value="task_type"
+          :options="taskOptions"
+          :fieldNames="{ label: 'name', value: 'id' }"
+          @change="handleSelectChange"
+        />
         <a-button type="primary" @click="handleCreate" :loading="loading">申请任务</a-button>
       </template>
       <template #bodyCell="{ record, column }">
         <TableAction
-          v-if="column.dataIndex == 'action'"
+          v-if="
+            column.dataIndex == 'action' &&
+            [0, 1, 2].includes(Number(record.workflow_type_number) % 5) &&
+            ![0, 1, 2].includes(Number(record.workflow_type_number)) &&
+            record.info_name
+          "
           :actions="[
             {
               icon: 'ant-design:bars-outlined',
@@ -31,14 +34,75 @@
             },
           ]"
         />
+        <TableAction
+          v-if="
+            column.dataIndex == 'action' &&
+            [0, 1, 2].includes(Number(record.workflow_type_number)) &&
+            record.info_name &&
+            record.worktask_type_id == taskOptions0.value
+          "
+          :actions="[
+            {
+              icon: 'clarity:note-edit-line',
+              tooltip: '编辑资源',
+              onClick: handleEdit.bind(null, record),
+            },
+            {
+              icon: 'ant-design:bars-outlined',
+              tooltip: '查看资源详情',
+              onClick: handleView.bind(null, record),
+            },
+            {
+              icon: 'ant-design:check-outlined',
+              tooltip: '完成',
+              popConfirm: {
+                title: '是否确认完成',
+                confirm: handleDone.bind(null, record),
+              },
+            },
+          ]"
+        />
+        <TableAction
+          v-if="
+            column.dataIndex == 'action' &&
+            [0, 1, 2].includes(Number(record.workflow_type_number)) &&
+            record.info_name &&
+            record.worktask_type_id != taskOptions0.value
+          "
+          :actions="[
+            {
+              icon: 'ant-design:bars-outlined',
+              tooltip: '查看资源详情',
+              onClick: handleView.bind(null, record),
+            },
+            {
+              icon: 'ant-design:check-outlined',
+              tooltip: '完成',
+              popConfirm: {
+                title: '是否确认完成',
+                confirm: handleDone.bind(null, record),
+              },
+            },
+          ]"
+        />
+        <TableAction
+          v-if="column.dataIndex == 'action' && record.info_name == ''"
+          :actions="[
+            {
+              icon: 'clarity:note-edit-line',
+              tooltip: '编辑资源',
+              onClick: handleEdit.bind(null, record),
+            },
+          ]"
+        />
       </template>
     </BasicTable>
+    <ListModal @register="registerModal" @success="handleSuccess" />
   </PageWrapper>
 </template>
 <script lang="ts">
-  import { defineComponent, reactive, ref, onMounted, nextTick, unref } from 'vue';
+  import { defineComponent, reactive, ref } from 'vue';
 
-  import { TreeItem, TreeActionType } from '/@/components/Tree/index';
   import { BasicTable, useTable, TableAction } from '/@/components/Table';
   import { getTaskListByPage, finishTaskApi } from '/@/api/data/workflowTask';
   import { PageWrapper } from '/@/components/Page';
@@ -47,40 +111,60 @@
   import { useGo } from '/@/hooks/web/usePage';
   import { usePermission } from '/@/hooks/web/usePermission';
 
-  import { getRepositoryTree, getCateByResIdApi } from '/@/api/data/repository';
-  import { getImageDealTaskApi } from '/@/api/data/detail';
-  import { useUserStore } from '/@/store/modules/user';
+  import { Select } from 'ant-design-vue';
 
+  import { TaskAddApi } from '/@/api/data/workflowTask';
+  import { useUserStore } from '/@/store/modules/user';
+  import { getTaskTypeList } from '/@/api/data/workTaskType';
+  import { useModal } from '/@/components/Modal';
+  import ListModal from './ListModal.vue';
   export default defineComponent({
     name: 'ImageDealManagement',
     components: {
       BasicTable,
       PageWrapper,
-
       TableAction,
+      [Select.name]: Select,
+      ListModal,
     },
     setup() {
       const go = useGo();
       const visible = ref<boolean>(false);
       const current = ref(1);
+      const pageSize = ref(10);
+      const total = ref(1);
       const hide = () => {
         visible.value = false;
       };
       const { hasPermission } = usePermission();
-
+      const task_type = ref('-1');
       const searchInfo = reactive<Recordable>({});
       const userStore = useUserStore();
-
+      const [registerModal, { openModal }] = useModal();
       searchInfo.nowHandlerId = userStore.getUserInfo.userId;
       searchInfo.repId = userStore.getUserInfo.now_work_repository;
-      searchInfo.status = '5';
-      const Infodata = ref<Recordable[]>([]);
-      const [registerTable, { reload }] = useTable({
+      searchInfo.status = '2';
+      const Taskdata = ref<Recordable[]>([]);
+      const taskOptions = ref<Recordable>();
+      const taskOptions0 = ref(-1);
+      const getTaskOptionsAndList = async () => {
+        taskOptions.value = await getTaskTypeList(
+          Number(userStore.getUserInfo.now_work_repository),
+        );
+        task_type.value = taskOptions.value[0].id;
+        taskOptions0.value = taskOptions.value[0].id;
+        console.log(taskOptions0.value);
+
+        searchInfo.taskType = task_type.value;
+        reload();
+      };
+      getTaskOptionsAndList();
+      const [registerTable, { reload, updateTableDataRecord }] = useTable({
         title: '已申请图像任务列表',
-        api: getTaskListByPage,
         rowKey: 'id',
+        api: getTaskListByPage,
         columns,
-        dataSource: Infodata,
+        dataSource: Taskdata,
         formConfig: {
           labelWidth: 120,
           schemas: searchFormSchema,
@@ -90,8 +174,11 @@
         showTableSetting: true,
         bordered: true,
         handleSearchInfoFn(info) {
+          console.log(info);
+
           return info;
         },
+        immediate: false,
         actionColumn: {
           width: 120,
           title: '操作',
@@ -102,9 +189,11 @@
 
       async function handleCreate() {
         loading.value = true;
-        searchInfo.repId = Number(useUserStore().getUserInfo.now_work_repository);
         try {
-          await getImageDealTaskApi(searchInfo.repId);
+          await TaskAddApi({
+            repId: Number(searchInfo.repId),
+            taskType: Number(searchInfo.taskType),
+          });
         } catch (error) {
           console.log(error);
         }
@@ -112,19 +201,9 @@
         reload();
       }
 
-      function handleEdit(record: Recordable) {
-        openModal(true, {
-          cateId: searchInfo.cateId,
-          repId: searchInfo.repId,
-          record,
-          isUpdate: true,
-          currentId: record.id,
-        });
-      }
-
       async function handleDone(record: Recordable) {
         try {
-          await finishTaskApi(record.id, 6).then(function () {
+          await finishTaskApi(record.info_id, 6).then(function () {
             reload();
           });
         } catch (error) {
@@ -132,72 +211,65 @@
         }
       }
 
-      function handleTableChange(pagination) {
-        current.value = pagination.current;
+      async function handleSelectChange() {
+        searchInfo.taskType = task_type.value;
+        reload();
       }
-
       function handleView(record: Recordable) {
-        go('/data/deal_detail/' + record.info_id);
+        // go('/data/deal_detail/' + record.info_id);
+        go('/data/data_detail/' + record.info_id);
+      }
+      function handleEdit(record: Recordable) {
+        if (record.info_id != -1) {
+          openModal(true, {
+            repId: searchInfo.repId,
+            record,
+            isUpdate: true,
+            currentId: record.info_id,
+          });
+        } else {
+          openModal(true, {
+            repId: searchInfo.repId,
+            record,
+            isUpdate: false,
+            currentId: record.info_id,
+          });
+        }
       }
 
-      const repData = ref<TreeItem[]>([]);
-      const cateTreeData = ref<TreeItem[]>([]);
+      function handleSuccess({ isUpdate, values }) {
+        if (isUpdate) {
+          updateTableDataRecord(values.id, values);
+        } else {
+          reload();
+        }
+      }
       const treeLoading = ref(false);
-      const asyncExpandTreeRef = ref<Nullable<TreeActionType>>(null);
-      const asyncTreeRef = ref<Nullable<TreeActionType>>(null);
       const loading = ref(false);
 
-      async function fetch() {
-        try {
-          repData.value = (await getRepositoryTree()) as unknown as TreeItem[];
-        } catch (error) {
-          console.log(error);
-        }
-      }
-      onMounted(() => {
-        fetch();
-      });
-      const timer = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-      async function loadTreeData(value) {
-        try {
-          searchInfo.cateId = -1;
-          treeLoading.value = true;
-          cateTreeData.value = (await getCateByResIdApi(value)) as unknown as TreeItem[];
-          await timer(500);
-          treeLoading.value = false;
-          nextTick(() => {
-            unref(asyncExpandTreeRef)?.expandAll(true);
-          });
-
-          searchInfo.repId = value;
-          reload();
-        } catch (error) {
-          console.log(error);
-        }
-      }
       return {
         hasPermission,
         registerTable,
 
         handleCreate,
-        handleEdit,
         handleDone,
-
+        handleEdit,
         handleView,
         searchInfo,
-        fetch,
-        repData,
-        loadTreeData,
-        cateTreeData,
-        asyncTreeRef,
-        asyncExpandTreeRef,
         treeLoading,
         loading,
-        Infodata,
+        Taskdata,
         visible,
         hide,
         current,
-        handleTableChange,
+        pageSize,
+        total,
+        handleSelectChange,
+        task_type,
+        taskOptions,
+        registerModal,
+        handleSuccess,
+        taskOptions0,
       };
     },
   });

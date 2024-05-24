@@ -25,7 +25,6 @@
   import { useGo } from '/@/hooks/web/usePage';
   import { useModal } from '/@/components/Modal';
   import { useUserStore } from '/@/store/modules/user';
-
   export default defineComponent({
     name: 'DataTaskManagement',
     components: { BasicTable, TableAction },
@@ -60,7 +59,7 @@
       }
 
       async function handleView(record: Recordable) {
-        go('/data/task_detail/' + record.info_id + '/' + record.type);
+        go('/data/task_detail/' + record.id);
       }
       return {
         registerTable,

@@ -226,7 +226,7 @@ const comp: AppRouteModule = {
         {
           path: 'editRowTable',
           name: 'EditRowTableDemo',
-          component: () => import('/@/views/demo/table/EditRowTable.vue'),
+          component: () => import('/@/views/demo/table/editRowTable.vue'),
           meta: {
             title: t('routes.demo.table.editRowTable'),
           },

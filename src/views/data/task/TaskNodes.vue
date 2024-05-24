@@ -18,10 +18,10 @@
           >
             <a-step v-for="(item, index) in nodesData" :key="index" :title="item.status">
               <template #description>
-                <div v-if="item.proofread_num == '-1'">图像上传处理、校对</div>
-                <div v-if="item.proofread_num == '0'">首次处理、校对</div>
-                <div v-if="item.proofread_num == '1'">第2次处理、校对</div>
-                <div v-if="item.proofread_num == '2'">最终处理、校对</div>
+                <div>{{ item.workflow_type_name }}</div>
+                <div v-if="item.workflow_type_name.includes('返回')"
+                  ><div v-if="item.memo == ''">标记</div></div
+                >
                 <div>{{ item.now_node_person_name }}</div>
                 <p>{{ item.create_time }}</p>
                 <p>{{ item.memo }}</p>

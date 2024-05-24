@@ -28,3 +28,6 @@ export const getCateByResIdApi = (repositoryId: number) =>
 
 export const setUserRepApi = (repositoryId: number) =>
   defHttp.post<void>({ url: Api.Repositories + repositoryId + '/' + 'set-user-rep/' });
+
+export const getTaskTypeApi = (repositoryId: number) =>
+  defHttp.get<void>({ url: Api.Repositories + repositoryId + '/' + 'task-type/' });

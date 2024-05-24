@@ -2,7 +2,6 @@ import { defHttp } from '/@/utils/http/axios';
 
 enum Api {
   Details = '/data/details/',
-  Proofread = '/data/details/proofread/',
   imageDealTask = '/data/details/image-deal-task/',
 }
 import { DetailPageParams, DetailPageListGetResultModel } from '../model/dataModel';
@@ -26,11 +25,6 @@ export const detailDeleteApi = (detailId: number[], type: number) =>
 export const getImageDealTaskApi = (repositoryId: number) =>
   defHttp.get<void>({
     url: Api.imageDealTask + '?repId=' + repositoryId,
-  });
-
-export const getProofreadApi = (repositoryId: number, proofReadNum: string) =>
-  defHttp.get<void>({
-    url: Api.Proofread + '?repId=' + repositoryId + '&num=' + proofReadNum,
   });
 
 export const detailProofreadApi = (repositoryId: number, categoryId: number) =>

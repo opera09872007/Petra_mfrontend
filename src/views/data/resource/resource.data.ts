@@ -26,6 +26,11 @@ export const columns: BasicColumn[] = [
     align: 'left',
   },
   {
+    title: '任务校对次数',
+    dataIndex: 'proofread_num',
+    align: 'left',
+  },
+  {
     title: '角色访问权限',
     dataIndex: 'roles',
     align: 'left',
@@ -131,6 +136,13 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
+    field: 'proofread_num',
+    label: '任务校对次数',
+    component: 'InputNumber',
+    required: true,
+    defaultValue: 1,
+  },
+  {
     label: '角色访问权限',
     field: 'roles',
     component: 'ApiSelect',
@@ -188,5 +200,62 @@ export const formSchema: FormSchema[] = [
     component: 'InputTextArea',
 
     colProps: { span: 18 },
+  },
+];
+
+export const taskSchema: FormSchema[] = [
+  {
+    field: 'name',
+    label: '任务名称',
+    component: 'Input',
+    required: true,
+  },
+  {
+    field: 'proofread_num',
+    label: '校对次数',
+    component: 'InputNumber',
+    required: true,
+    defaultValue: 1,
+  },
+  {
+    field: 'priority',
+    label: '任务排序',
+    component: 'InputNumber',
+    required: true,
+    defaultValue: 1,
+  },
+];
+
+export const taskcolumns: BasicColumn[] = [
+  {
+    title: 'id',
+    dataIndex: 'id',
+    align: 'left',
+    ifShow: false,
+  },
+  {
+    title: '任务名称',
+    dataIndex: 'name',
+    editRow: true,
+    align: 'left',
+    width: 50,
+  },
+  {
+    title: '校对次数',
+    dataIndex: 'proofread_num',
+    editRow: true,
+    width: 50,
+  },
+  {
+    title: '图片标识',
+    dataIndex: 'img_type',
+    editRow: false,
+    width: 50,
+  },
+  {
+    title: '排序',
+    dataIndex: 'priority',
+    width: 50,
+    editRow: false,
   },
 ];

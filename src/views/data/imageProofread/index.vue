@@ -10,12 +10,12 @@
       @change="handleTableChange"
     >
       <template #toolbar>
-        <a-select v-model:value="proofread_count">
-          <a-select-option value="0" v-if="hasPermission('1001')"> 一校 </a-select-option>
-          <a-select-option value="1" v-if="hasPermission('1002')"> 二校 </a-select-option>
-          <a-select-option value="2" v-if="hasPermission('1003')"> 最终校对 </a-select-option>
-          <a-select-option value="4" v-if="hasPermission('1004')"> 上传校对 </a-select-option>
-        </a-select>
+        <a-cascader
+          v-model:value="cascaderValue"
+          :field-names="{ label: 'label', value: 'value', children: 'children' }"
+          :options="cascaderOptions"
+          placeholder="请选择校对类型及轮次"
+        />
         <a-button type="primary" @click="handleCreate" :loading="loading">申请任务</a-button>
       </template>
       <template #bodyCell="{ record, column }">
@@ -43,7 +43,7 @@
   </PageWrapper>
 </template>
 <script lang="ts">
-  import { defineComponent, reactive, ref, onMounted, nextTick, unref } from 'vue';
+  import { defineComponent, reactive, ref, unref } from 'vue';
 
   import { TreeItem, TreeActionType } from '/@/components/Tree/index';
   import { BasicTable, useTable, TableAction } from '/@/components/Table';
@@ -58,13 +58,14 @@
   import { useGo } from '/@/hooks/web/usePage';
   import { usePermission } from '/@/hooks/web/usePermission';
 
-  import { Select } from 'ant-design-vue';
+  import { Cascader } from 'ant-design-vue';
 
-  import { getRepositoryTree, getCateByResIdApi } from '/@/api/data/repository';
-  import { getProofreadApi } from '/@/api/data/detail';
+  import { getTaskTypeTreeList } from '/@/api/data/workTaskType';
+  import { getProofreadApi } from '/@/api/data/workflowTask';
 
   import { useUserStore } from '/@/store/modules/user';
-
+  import { useMessage } from '/@/hooks/web/useMessage';
+  const { createMessage } = useMessage();
   export default defineComponent({
     name: 'ImageProofReadManagement',
     components: {
@@ -72,35 +73,35 @@
       PageWrapper,
       ListModal,
       TableAction,
-      [Select.name]: Select,
-      ASelectOption: Select.Option,
+      [Cascader.name]: Cascader,
     },
     setup() {
       const go = useGo();
       const visible = ref<boolean>(false);
       const current = ref(1);
-      const proofread_count = ref('0');
       const hide = () => {
         visible.value = false;
       };
 
       const { hasPermission } = usePermission();
-      if (hasPermission('1004')) {
-        proofread_count.value = '3';
-      }
-      if (hasPermission('1003')) {
-        proofread_count.value = '2';
-      }
-      if (hasPermission('1002')) {
-        proofread_count.value = '1';
-      }
-      if (hasPermission('1001')) {
-        proofread_count.value = '0';
-      }
+      // if (hasPermission('1004')) {
+      //   proofread_count.value = '3';
+      // }
+      // if (hasPermission('1003')) {
+      //   proofread_count.value = '2';
+      // }
+      // if (hasPermission('1002')) {
+      //   proofread_count.value = '1';
+      // }
+      // if (hasPermission('1001')) {
+      //   proofread_count.value = '0';
+      // }
       const [registerModal, { openModal }] = useModal();
       const searchInfo = reactive<Recordable>({});
       const userStore = useUserStore();
+      const cascaderOptions = ref([]);
 
+      const cascaderValue = ref<string[]>([]);
       searchInfo.nowHandlerId = userStore.getUserInfo.userId;
       searchInfo.repId = userStore.getUserInfo.now_work_repository;
       searchInfo.status = '1';
@@ -131,18 +132,26 @@
           // slots: { customRender: 'action' },
         },
       });
-
+      async function getTypeTree(repId: number) {
+        const result = await getTaskTypeTreeList(repId);
+        cascaderOptions.value = unref(result);
+      }
+      getTypeTree(searchInfo.repId);
       async function handleCreate() {
-        loading.value = true;
-        searchInfo.repId = Number(useUserStore().getUserInfo.now_work_repository);
+        if (cascaderValue.value[0] && cascaderValue.value[1]) {
+          loading.value = true;
+          searchInfo.repId = Number(useUserStore().getUserInfo.now_work_repository);
 
-        try {
-          await getProofreadApi(searchInfo.repId, proofread_count.value);
-        } catch (error) {
-          console.log(error);
+          try {
+            await getProofreadApi(searchInfo.repId, cascaderValue.value[0], cascaderValue.value[1]);
+          } catch (error) {
+            console.log(error);
+          }
+          loading.value = false;
+          reload();
+        } else {
+          createMessage.error('请先选择校对的任务及轮次');
         }
-        loading.value = false;
-        reload();
       }
 
       function handleEdit(record: Recordable) {
@@ -157,7 +166,7 @@
 
       async function handleDone(record: Recordable) {
         try {
-          await finishTaskApi(record.id, 2).then(function () {
+          await finishTaskApi(record.info_id, 2).then(function () {
             reload();
           });
         } catch (error) {
@@ -198,34 +207,6 @@
       const asyncExpandTreeRef = ref<Nullable<TreeActionType>>(null);
       const asyncTreeRef = ref<Nullable<TreeActionType>>(null);
 
-      async function fetch() {
-        try {
-          repData.value = (await getRepositoryTree()) as unknown as TreeItem[];
-        } catch (error) {
-          console.log(error);
-        }
-      }
-      onMounted(() => {
-        fetch();
-      });
-      const timer = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-      async function loadTreeData(value) {
-        try {
-          searchInfo.cateId = -1;
-          treeLoading.value = true;
-          cateTreeData.value = (await getCateByResIdApi(value)) as unknown as TreeItem[];
-          await timer(500);
-          treeLoading.value = false;
-          nextTick(() => {
-            unref(asyncExpandTreeRef)?.expandAll(true);
-          });
-
-          searchInfo.repId = value;
-          reload();
-        } catch (error) {
-          console.log(error);
-        }
-      }
       return {
         hasPermission,
         registerTable,
@@ -239,7 +220,6 @@
         searchInfo,
         fetch,
         repData,
-        loadTreeData,
         cateTreeData,
         asyncTreeRef,
         asyncExpandTreeRef,
@@ -250,7 +230,8 @@
         hide,
         current,
         handleTableChange,
-        proofread_count,
+        cascaderOptions,
+        cascaderValue,
       };
     },
   });

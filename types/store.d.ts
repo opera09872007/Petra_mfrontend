@@ -40,8 +40,6 @@ export interface UserInfo {
   homePath?: string;
   roles: RoleInfo[];
   name: string;
-  access_key: string;
-  secret_key: string;
   end_point: string;
   now_work_repository: string;
 }

@@ -42,7 +42,7 @@
   import { useTabs } from '/@/hooks/web/useTabs';
   import { getDetailList } from '/@/api/data/detail';
 
-  import { infoDetailApi } from '/@/api/data/info';
+  import { getTaskImgTypeApi } from '/@/api/data/workflowTask';
 
   export default defineComponent({
     name: 'TaskDetail',
@@ -54,43 +54,35 @@
     setup() {
       const route = useRoute();
       const go = useGo();
-
+      const taskId = ref(route.params?.id);
       // 此处可以得到用户ID
-      const status = ref(route.params?.status);
-      const infoId = ref(route.params?.id);
+      console.log(route.params);
+
       const currentKey = ref('detail');
-      const { setTitle } = useTabs();
+      const {} = useTabs();
       const tableData = ref([]);
 
       const searchInfo = reactive<Recordable>({});
-      searchInfo.infoId = infoId.value;
-      if (status.value == '3') {
-        searchInfo.type = 0;
-      } else {
-        searchInfo.type = 1;
-      }
+      searchInfo.taskId = taskId.value;
 
       const Infodata = ref<Recordable[]>([]);
-      const getData = async () => {
-        const res = await infoDetailApi(infoId.value);
-        if (res) {
-          tableData.value = res;
-          setTitle('详情：' + tableData.value.name);
-        }
+      const getImgType = async () => {
+        let result = await getTaskImgTypeApi(Number(taskId.value));
+        searchInfo.type = Number(result.img_type);
+        reload();
       };
-
-      getData();
-
-      const [registerTable, {}] = useTable({
+      getImgType();
+      const [registerTable, { reload }] = useTable({
         title: '资源详细',
-        api: getDetailList,
         rowKey: 'id',
+        api: getDetailList,
         columns: detailColumns,
         dataSource: Infodata,
         useSearchForm: false,
         isTreeTable: false,
         showTableSetting: true,
         bordered: true,
+        immediate: false,
         handleSearchInfoFn(info) {
           return info;
         },
@@ -111,12 +103,11 @@
       }
 
       return {
-        infoId,
+        taskId,
         Infodata,
         currentKey,
         goBack,
         tableData,
-        getData,
         registerTable,
 
         handleShow,

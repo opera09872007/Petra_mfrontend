@@ -46,3 +46,6 @@ export const getinfoContainTextApi = (infoId: number) =>
 
 export const getCateByInfoIdApi = (infoId: number) =>
   defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'cate-tree/' });
+
+export const getImgTypeByInfoIdList = (infoId: number) =>
+  defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'task-img-type/' });

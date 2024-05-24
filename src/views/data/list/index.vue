@@ -50,8 +50,9 @@
         <TableAction
           v-if="
             column.dataIndex == 'action' &&
-            (record.work_flow_type == 0 || record.work_flow_type == 3) &&
-            record.is_null == 0
+            Number(record.workflow_type_number) % 5 == 0 &&
+            record.is_null == 0 &&
+            record.dealer_id == userId
           "
           :actions="[
             {
@@ -98,11 +99,11 @@
             },
           ]"
         />
+
         <TableAction
           v-if="
             column.dataIndex == 'action' &&
-            record.work_flow_type != 0 &&
-            record.work_flow_type != 3 &&
+            Number(record.workflow_type_number) % 5 != 0 &&
             record.is_null == 0
           "
           :actions="[
@@ -176,12 +177,8 @@
 
   import { BasicTree, TreeItem, TreeActionType } from '/@/components/Tree/index';
   import { BasicTable, useTable, TableAction } from '/@/components/Table';
-  import {
-    getInfoList,
-    infoDeleteApi,
-    finishUploadApi,
-    infoResetStatusApi,
-  } from '/@/api/data/info';
+  import { getInfoList, infoDeleteApi, infoResetStatusApi } from '/@/api/data/info';
+  import { finishTaskApi } from '/@/api/data/workflowTask';
   import { PageWrapper } from '/@/components/Page';
 
   import { useModal } from '/@/components/Modal';
@@ -224,6 +221,7 @@
       if (!hasPermission('1000')) {
         searchInfo.id = userStore.getUserInfo.userId;
       }
+      const userId = userStore.getUserInfo.userId;
       const [registerTable, { reload, updateTableDataRecord, expandAll, collapseAll }] = useTable({
         title: '资源列表',
         api: getInfoList,
@@ -309,8 +307,8 @@
         current.value = pagination.current;
       }
 
-      function handleView(record: Recordable) {
-        go('/data/data_detail/' + record.id + '/-1');
+      async function handleView(record: Recordable) {
+        go('/data/data_detail/' + record.id);
       }
       async function handleReset(record: Recordable) {
         const data = await infoResetStatusApi(record.id);
@@ -321,7 +319,7 @@
       }
       async function handleDone(record: Recordable) {
         try {
-          await finishUploadApi(record.id, 2).then(function () {
+          await finishTaskApi(record.id, 2).then(function () {
             reload();
           });
         } catch (error) {
@@ -421,6 +419,7 @@
         collapseAll,
         onLoadData,
         handleReset,
+        userId,
       };
     },
   });

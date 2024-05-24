@@ -22,56 +22,26 @@ export const columns: BasicColumn[] = [
   },
   {
     title: '状态',
-    dataIndex: 'status',
+    dataIndex: 'workflow_type_name',
     customRender: ({ record }) => {
-      const status = record.status;
-      let color = 'green';
-      let text = '按钮';
-      switch (status) {
-        case '0':
-          color = '#13c2c2';
-          text = '新建';
-          break;
-        case '1':
-          color = '#1890ff';
-          text = '校对中';
-          break;
-        case '2':
-          color = '#13c2c2';
-          text = '校对完成';
-          break;
-        case '3':
-          color = '#F08080';
-          text = '退回';
-          break;
-        case '4':
-          color = '#FBAC5E';
-          text = '修改完成';
-          break;
-        case '5':
-          color = '#1890ff';
-          text = '图像处理中';
-          break;
-        case '6':
-          color = '#1890ff';
-          text = '图像处理完成';
-          break;
-        case '8':
-          color = '#13c2c2';
-          text = '图像上传完成';
-          break;
-        case '9':
-          color = '#1890ff';
-          text = '上传校对中';
-          break;
-        case '10':
-          color = '#13c2c2';
-          text = '上传校对完成';
-          break;
-        default:
-          color = '#faad14';
-          text = '暂无';
-          break;
+      if (record.is_null) {
+        return '';
+      }
+      let text = record.workflow_type_name;
+      let color = '#13c2c2';
+      if (text.includes('新建')) {
+        color = '#13c2c2';
+      } else if (text.includes('中')) {
+        color = '#1890ff';
+      } else if (text.includes('返回')) {
+        color = '#F08080';
+      } else if (text.includes('完成')) {
+        color = '#1890ff';
+      } else if (text.includes('删除')) {
+        color = '#813772';
+      } else {
+        color = '#faad14';
+        text = '暂无';
       }
       return h(Tag, { color: color }, () => text);
     },
@@ -162,54 +132,24 @@ export const detailColumns: BasicColumn[] = [
     dataIndex: 'work_flow_type',
     width: '10%',
     customRender: ({ record }) => {
-      const status = record.work_flow_type;
-      let color = 'green';
-      let text = '按钮';
-      switch (status) {
-        case '0':
-          color = '#13c2c2';
-          text = '新建';
-          break;
-        case '1':
-          color = '#1890ff';
-          text = '校对中';
-          break;
-        case '2':
-          color = '#13c2c2';
-          text = '校对完成';
-          break;
-        case '3':
-          color = '#F08080';
-          text = '退回';
-          break;
-        case '4':
-          color = '#FBAC5E';
-          text = '修改完成';
-          break;
-        case '5':
-          color = '#1890ff';
-          text = '图像处理中';
-          break;
-        case '6':
-          color = '#1890ff';
-          text = '图像处理完成';
-          break;
-        case '8':
-          color = '#13c2c2';
-          text = '图像上传完成';
-          break;
-        case '9':
-          color = '#1890ff';
-          text = '上传校对中';
-          break;
-        case '10':
-          color = '#13c2c2';
-          text = '上传校对完成';
-          break;
-        default:
-          color = '#faad14';
-          text = '暂无';
-          break;
+      if (record.is_null) {
+        return '';
+      }
+      let text = record.workflow_type_name;
+      let color = '#13c2c2';
+      if (text.includes('新建')) {
+        color = '#13c2c2';
+      } else if (text.includes('中')) {
+        color = '#1890ff';
+      } else if (text.includes('返回')) {
+        color = '#F08080';
+      } else if (text.includes('完成')) {
+        color = '#1890ff';
+      } else if (text.includes('删除')) {
+        color = '#813772';
+      } else {
+        color = '#faad14';
+        text = '暂无';
       }
       return h(Tag, { color: color }, () => text);
     },

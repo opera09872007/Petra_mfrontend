@@ -59,9 +59,6 @@
               ref="uploadRef"
               :pathName="pathName"
               :bucketName="bucketName"
-              :accessKey="accessKey"
-              :secretKey="secretKey"
-              :endPoint="endPoint"
               :regStr="regStr"
             />
             <a-button type="primary" @click="handleDownload(1)">下载</a-button>
@@ -126,9 +123,6 @@
       const userStore = useUserStore();
       const { fileviewUrl = '' } = useGlobSetting();
 
-      const accessKey = userStore.getUserInfo.access_key;
-      const secretKey = userStore.getUserInfo.secret_key;
-      const endPoint = userStore.getUserInfo.end_point;
       const bucketName = ref('');
       const pathName = ref('');
       const regStr = ref('');
@@ -381,9 +375,6 @@
         getPathName,
         bucketName,
         regStr,
-        accessKey,
-        secretKey,
-        endPoint,
         handleShowImg,
         handleShowText,
       };

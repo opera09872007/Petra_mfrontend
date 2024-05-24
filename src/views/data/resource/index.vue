@@ -11,11 +11,18 @@
           :actions="[
             {
               icon: 'clarity:note-edit-line',
+              tooltip: '编辑资源库',
               onClick: handleEdit.bind(null, record),
+            },
+            {
+              icon: 'ant-design:bars-outlined',
+              tooltip: '编辑任务流程',
+              onClick: handleEditTask.bind(null, record),
             },
             {
               icon: 'ant-design:delete-outlined',
               color: 'error',
+              tooltip: '删除资源库',
               popConfirm: {
                 title: '是否确认删除',
                 confirm: handleDelete.bind(null, record),
@@ -25,6 +32,7 @@
         />
       </template>
     </BasicTable>
+    <ResourceDrawer @register="registerDrawer" @success="handleSuccess" />
     <ResourceModal @register="registerModal" @success="handleSuccess" />
   </div>
 </template>
@@ -35,14 +43,17 @@
   import { getRepositoryList, repositoryDeleteApi } from '/@/api/data/repository';
 
   import { useModal } from '/@/components/Modal';
+  import { useDrawer } from '/@/components/Drawer';
+  import ResourceDrawer from './ResourceDrawer.vue';
   import ResourceModal from './ResourceModal.vue';
 
   import { columns, searchFormSchema } from './resource.data';
 
   export default defineComponent({
     name: 'ResourceManagement',
-    components: { BasicTable, ResourceModal, TableAction },
+    components: { BasicTable, ResourceModal, TableAction, ResourceDrawer },
     setup() {
+      const [registerDrawer, { openDrawer }] = useDrawer();
       const [registerModal, { openModal }] = useModal();
       const [registerTable, { reload, expandAll, collapseAll }] = useTable({
         title: '资源库列表',
@@ -83,7 +94,12 @@
           currentId: record.id,
         });
       }
-
+      function handleEditTask(record: Recordable) {
+        openDrawer(true, {
+          record,
+          currentId: record.id,
+        });
+      }
       async function handleDelete(record: Recordable) {
         try {
           await repositoryDeleteApi(record.id);
@@ -100,10 +116,12 @@
         nextTick(expandAll);
       }
       return {
+        registerDrawer,
         registerTable,
         registerModal,
         handleCreate,
         handleEdit,
+        handleEditTask,
         handleDelete,
         handleSuccess,
         onFetchSuccess,

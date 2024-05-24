@@ -58,101 +58,28 @@ export const columns: BasicColumn[] = [
     width: 120,
   },
   {
-    title: '校对轮次',
-    dataIndex: 'proofread_num',
-    width: 120,
-    customRender: ({ record }) => {
-      if (record.is_null) {
-        return '';
-      }
-      const status = record.proofread_num;
-      let color = 'green';
-      let text = '按钮';
-      switch (status) {
-        case '-1':
-          color = '#13c2c2';
-          text = '图像上传校对';
-          break;
-        case '0':
-          color = '#1890ff';
-          text = '一校';
-          break;
-        case '1':
-          color = '#1890ff';
-          text = '二校';
-          break;
-        case '2':
-          color = '#1890ff';
-          text = '最终校对';
-          break;
-        case '3':
-          color = '#13c2c2';
-          text = '最终校对完成';
-          break;
-        default:
-          color = '#faad14';
-          text = '暂无';
-          break;
-      }
-      return h(Tag, { color: color }, () => text);
-    },
-  },
-  {
     title: '状态',
-    dataIndex: 'work_flow_type',
+    dataIndex: 'workflow_type_name',
     width: 120,
     customRender: ({ record }) => {
       if (record.is_null) {
         return '';
       }
-      const status = record.work_flow_type;
-      let color = 'green';
-      let text = '按钮';
-      switch (status) {
-        case '0':
-          color = '#13c2c2';
-          text = '新建';
-          break;
-        case '1':
-          color = '#1890ff';
-          text = '校对中';
-          break;
-        case '2':
-          color = '#13c2c2';
-          text = '校对完成';
-          break;
-        case '3':
-          color = '#F08080';
-          text = '退回';
-          break;
-        case '4':
-          color = '#FBAC5E';
-          text = '修改完成';
-          break;
-        case '5':
-          color = '#1890ff';
-          text = '图像处理中';
-          break;
-        case '6':
-          color = '#1890ff';
-          text = '图像处理完成';
-          break;
-        case '8':
-          color = '#13c2c2';
-          text = '图像上传完成';
-          break;
-        case '9':
-          color = '#1890ff';
-          text = '上传校对中';
-          break;
-        case '10':
-          color = '#13c2c2';
-          text = '上传校对完成';
-          break;
-        default:
-          color = '#faad14';
-          text = '暂无';
-          break;
+      let text = record.task_name + '(' + record.workflow_type_name + ')';
+      let color = '#13c2c2';
+      if (text.includes('新建')) {
+        color = '#13c2c2';
+      } else if (text.includes('中')) {
+        color = '#1890ff';
+      } else if (text.includes('返回')) {
+        color = '#F08080';
+      } else if (text.includes('完成')) {
+        color = '#1890ff';
+      } else if (text.includes('删除')) {
+        color = '#813772';
+      } else {
+        color = '#faad14';
+        text = '暂无';
       }
       return h(Tag, { color: color }, () => text);
     },
@@ -195,6 +122,47 @@ export const detailColumns: BasicColumn[] = [
     width: 120,
   },
   {
+    title: '状态',
+    dataIndex: 'workflow_type_name',
+    width: 120,
+    customRender: ({ record }) => {
+      if (record.is_null) {
+        return '';
+      }
+      let title = '';
+      let text = record.workflow_type_name;
+      let color = '#13c2c2';
+
+      if (text.includes('新建')) {
+        color = '#13c2c2';
+      } else if (text.includes('中')) {
+        color = '#1890ff';
+      } else if (text.includes('返回')) {
+        color = '#F08080';
+      } else if (text.includes('完成')) {
+        color = '#1890ff';
+      } else if (text.includes('删除')) {
+        color = '#813772';
+      } else {
+        color = '#faad14';
+        text = '暂无';
+      }
+      if (record.node_error_memo) {
+        color = '#F08080';
+        text = text;
+        title = record.node_error_memo;
+      }
+      if (text.includes('返回') && !record.node_error_memo) {
+        text = '';
+      }
+      return h(
+        Tooltip,
+        { color: color, title: title },
+        { default: () => h(Tag, { color: color }, { default: () => text }) },
+      );
+    },
+  },
+  {
     title: '创建人',
     dataIndex: 'creator_name',
     width: 120,
@@ -213,26 +181,6 @@ export const detailColumns: BasicColumn[] = [
     title: '更新时间',
     dataIndex: 'update_time',
     width: 120,
-  },
-  {
-    title: '状态',
-    dataIndex: 'node_error_memo',
-    width: 120,
-    customRender: ({ record }) => {
-      let color = '';
-      let text = '';
-      let title = '';
-      if (record.node_error_memo) {
-        color = '#F08080';
-        text = '退回';
-        title = record.node_error_memo;
-      }
-      return h(
-        Tooltip,
-        { color: color, title: title },
-        { default: () => h(Tag, { color: color }, { default: () => text }) },
-      );
-    },
   },
 ];
 const isNull = (type: string) => {
@@ -469,7 +417,33 @@ export const InfoFormSchema: FormSchema[] = [
     },
   },
 ];
-
+export const ProofreadFormSchema: FormSchema[] = [
+  {
+    field: 'img_path',
+    component: 'Input',
+    label: '名称',
+    colProps: { span: 24 },
+    componentProps: { disabled: true },
+  },
+  {
+    field: 'id',
+    component: 'Input',
+    label: 'detail_id',
+    show: false,
+  },
+  {
+    field: 'info',
+    component: 'Input',
+    label: 'info_id',
+    show: false,
+  },
+  {
+    label: '备注',
+    field: 'memo',
+    component: 'InputTextArea',
+    colProps: { span: 24 },
+  },
+];
 export const method = ['plans ourms lofm'];
 export const plugins = [
   'advlist anchor autolink autosave code codesample  directionality  fullscreen hr insertdatetime  lists  nonbreaking noneditable pagebreak   preview print save searchreplace tabfocus  template  textpattern visualblocks visualchars wordcount image anchor link',

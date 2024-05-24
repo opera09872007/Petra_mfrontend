@@ -3,6 +3,7 @@ import { WorkflowTaskPageParams, WorkflowTaskPageListGetResultModel } from '../m
 enum Api {
   TASKS = '/data/workflow-tasks/',
   NODES = '/data/workflow-nodes/',
+  Proofread = '/data/workflow-tasks/proofread/',
 }
 
 // Get personal center-basic settings
@@ -21,8 +22,24 @@ export const getNodesByDetailIdApi = (detailId: number) =>
 //     url: Api.TASKS + 'finishTask/' + '?infoId=' + infoId + '&detailId=' + detailId,
 //   });
 
-export const finishTaskApi = (detailId: number, type?: number) =>
+export const getTaskImgTypeApi = (task_id: number) =>
+  defHttp.get<void>({ url: Api.TASKS + task_id + '/' + 'img-type/' });
+
+export const getProofreadApi = (
+  repositoryId: number,
+  proofReadType: string,
+  proofReadNum: string,
+) =>
+  defHttp.get<void>({
+    url: Api.Proofread,
+    params: { repId: repositoryId, typeId: proofReadType, num: proofReadNum },
+  });
+
+export const finishTaskApi = (infoId: number, type?: number) =>
   defHttp.post<void>({
-    url: Api.TASKS + detailId + '/' + 'finish-task/',
+    url: Api.TASKS + infoId + '/' + 'finish-task/',
     params: { type: type },
   });
+
+export const TaskAddApi = (datas: number[]) =>
+  defHttp.post<void>({ url: Api.TASKS, params: datas });

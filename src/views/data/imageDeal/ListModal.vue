@@ -49,10 +49,12 @@
         isUpdate.value = !!data?.isUpdate;
         currentId = data?.currentId;
         repId = data?.repId;
-        cateId = data?.cateId;
 
+        setFieldsValue({
+          task_id: data.record.id,
+        });
         if (unref(isUpdate)) {
-          const infoData = await infoDetailApi(data.record.id);
+          const infoData = await infoDetailApi(currentId);
 
           for (var i in infoData.categories) {
             infoData.categories[i]['value'] = infoData.categories[i]['id'];
@@ -63,14 +65,19 @@
           } else {
             infoData.is_active = '0';
           }
-          rowId.value = data.record.id;
+          if (infoData.is_null == true) {
+            infoData.is_null = '1';
+          } else {
+            infoData.is_null = '0';
+          }
+          rowId.value = currentId;
           setFieldsValue({
             ...infoData,
           });
         }
 
         var treeData;
-        if (unref(repId) === -1 || unref(repId) == undefined || unref(repId) == '') {
+        if (unref(repId) === -1 || unref(repId) == undefined || unref(repId) == -1) {
           createMessage.error('请先选择资源库');
           closeModal();
         } else {
@@ -89,6 +96,7 @@
       async function handleSubmit() {
         try {
           const values = await validate();
+
           const data = values;
           setModalProps({ confirmLoading: true });
           for (var i in data.categories) {
@@ -99,6 +107,7 @@
             createMessage.error('请先选择资源库');
           } else {
             data.data_repository = repId;
+
             !unref(isUpdate) ? await infoAddApi(data) : await infoEditApi(unref(currentId), data);
 
             emit('success', { isUpdate: unref(isUpdate), values: { ...values, id: rowId.value } });

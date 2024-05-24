@@ -3,7 +3,14 @@ import { FormSchema } from '/@/components/Table';
 import { h } from 'vue';
 import { Tag, Tooltip } from 'ant-design-vue';
 import { Tinymce } from '/@/components/Tinymce/index';
-
+const validatorCategories = async (rule, value) => {
+  if (!value) return;
+  if (value.length > 1) {
+    return Promise.reject('分类数量不能大于1个!');
+  } else {
+    return Promise.resolve();
+  }
+};
 export const columns: BasicColumn[] = [
   {
     title: '名称',
@@ -137,10 +144,26 @@ export const searchFormSchema: FormSchema[] = [
 ];
 export const InfoFormSchema: FormSchema[] = [
   {
+    field: 'id',
+    label: 'id',
+    component: 'Input',
+    show: false,
+  },
+  {
+    field: 'task_id',
+    label: 'task_id',
+    component: 'Input',
+    show: false,
+  },
+  {
     field: 'name',
     label: '名称',
     component: 'Input',
     required: true,
+    dynamicDisabled: ({ values }) => {
+      if (values.id) return true;
+      else return false;
+    },
   },
   {
     field: 'categories',
@@ -160,14 +183,36 @@ export const InfoFormSchema: FormSchema[] = [
       },
       getPopupContainer: () => document.body,
     },
+    rules: [
+      {
+        required: true,
+        validator: validatorCategories,
+      },
+    ],
     required: true,
+    dynamicDisabled: ({ values }) => {
+      if (values.categories) return true;
+      else return false;
+    },
+  },
+  {
+    field: 'parent_name',
+    label: '所属父级',
+    component: 'Input',
+    dynamicDisabled: true,
+    show: false,
+  },
+  {
+    field: 'parent',
+    label: '所属父级id',
+    component: 'Input',
+    show: false,
   },
   {
     field: 'num',
     label: '总数量',
     component: 'InputNumber',
   },
-
   {
     field: 'is_active',
     label: '状态',
@@ -181,6 +226,32 @@ export const InfoFormSchema: FormSchema[] = [
     },
   },
   {
+    field: 'is_null',
+    label: '是否为空',
+    component: 'RadioButtonGroup',
+    defaultValue: '0',
+    componentProps: {
+      options: [
+        { label: '空', value: '1' },
+        { label: '包含内容', value: '0' },
+      ],
+    },
+    dynamicDisabled: ({ values }) => {
+      if (values.id) return true;
+      else return false;
+    },
+  },
+  {
+    field: 'dynasty',
+    label: '朝代',
+    component: 'Input',
+  },
+  {
+    field: 'mode',
+    label: '版本',
+    component: 'Input',
+  },
+  {
     field: 'content',
     component: 'Input',
     label: '内容',
@@ -189,7 +260,7 @@ export const InfoFormSchema: FormSchema[] = [
     render: ({ model, field }) => {
       return h(Tinymce, {
         value: model[field],
-        showImageUpload: false,
+        showImageUpload: true,
         toolbar: toolbar,
         plugins: plugins,
         onChange: (value: string) => {

@@ -262,6 +262,23 @@
             createMessage.warning(t('component.upload.uploadWait'));
             return;
           }
+          // var deleteParams = {
+          //   Bucket: record.Bucket,
+          //   Key: record.Key,
+          // };
+          // await minioClient.deleteObject(deleteParams, function (error) {
+          //   if (error) {
+          //     createMessage.warning(t('component.upload.delError') + error);
+          //     return;
+          //   } else {
+          //     const index = fileListRef.value.findIndex((item) => item.uuid === record.uuid);
+          //     index !== -1 && fileListRef.value.splice(index, 1);
+
+          //     fileNum.value = fileListRef.value.length;
+          //     emit('delete', record);
+          //     return;
+          //   }
+          // });
           let deleteResult: any = await deleteObjects({
             bucketName: record.Bucket,
             delete_object_list: [record.Key],
@@ -331,9 +348,11 @@
       }
       // 重试
       async function handleRetry(record: FileItem) {
+        // let multipartCreateResult = await minioClient.listParts(params).promise();
         await filterAndStoreChunks(record);
         try {
           uploadApiByItem3([record], 0);
+          // resendFile(record);
         } catch (e) {
           uploadApiByItem3([record], 0);
         }
