@@ -391,6 +391,7 @@
           let multipartCreateResult = await createMultipartUpload({
             bucketName: props.bucketName,
             objectName: props.pathName + item.name,
+            fileType: item.file.type,
           });
           item.UploadId = multipartCreateResult;
           item.Key = props.pathName + item.name;

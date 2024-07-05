@@ -3,7 +3,10 @@ import { FormSchema } from '/@/components/Table';
 import { h } from 'vue';
 import { Tag, Tooltip } from 'ant-design-vue';
 import { Tinymce } from '/@/components/Tinymce/index';
-
+import { getTypeChild } from '/@/api/data/workTaskType';
+import { useUserStore } from '/@/store/modules/user';
+const userStore = useUserStore();
+const repId = userStore.getUserInfo.now_work_repository;
 const validatorCategories = async (rule, value) => {
   if (!value) return;
   if (value.length > 1) {
@@ -16,12 +19,12 @@ export const columns: BasicColumn[] = [
   {
     title: 'ID',
     dataIndex: 'id',
-    width: 222,
+    width: 100,
   },
   {
     title: '名称',
     dataIndex: 'name',
-    width: 120,
+    width: 260,
   },
   {
     title: '分类',
@@ -42,25 +45,25 @@ export const columns: BasicColumn[] = [
       return names;
     },
   },
-  {
-    title: '总数量',
-    dataIndex: 'num',
-    width: 120,
-  },
+  // {
+  //   title: '总数量',
+  //   dataIndex: 'num',
+  //   width: 120,
+  // },
   {
     title: '当前数量',
     dataIndex: 'now_num',
     width: 120,
   },
-  {
-    title: '完成数量',
-    dataIndex: 'finish_num',
-    width: 120,
-  },
+  // {
+  //   title: '完成数量',
+  //   dataIndex: 'finish_num',
+  //   width: 120,
+  // },
   {
     title: '状态',
     dataIndex: 'workflow_type_name',
-    width: 120,
+    width: 180,
     customRender: ({ record }) => {
       if (record.is_null) {
         return '';
@@ -86,7 +89,7 @@ export const columns: BasicColumn[] = [
   },
   {
     title: '当前处理人',
-    dataIndex: 'handler_name',
+    dataIndex: 'dealer_name',
     width: 120,
   },
   {
@@ -258,42 +261,28 @@ export const searchFormSchema: FormSchema[] = [
     colProps: { span: 8 },
   },
   {
-    field: 'handler_name',
+    field: 'dealer_name',
     label: '当前处理人',
     component: 'Input',
     colProps: { span: 8 },
   },
   {
-    field: 'work_flow_type',
+    field: 'workflow_type_id',
+    component: 'ApiCascader',
     label: '状态',
-    component: 'Select',
-    componentProps: {
-      options: [
-        { label: '新建', value: '0' },
-        { label: '校对中', value: '1' },
-        { label: '校对完成', value: '2' },
-        { label: '校对错误', value: '3' },
-        { label: '修改完成', value: '4' },
-        { label: '图像处理中', value: '5' },
-        { label: '图像处理完成', value: '6' },
-      ],
+    colProps: {
+      span: 8,
     },
-    colProps: { span: 8 },
-  },
-  {
-    field: 'proofread_num',
-    label: '校对轮次',
-    component: 'Select',
     componentProps: {
-      options: [
-        { label: '图像上传校对', value: '-1' },
-        { label: '一校', value: '0' },
-        { label: '二校', value: '1' },
-        { label: '最终校对', value: '2' },
-        { label: '最终校对完成', value: '3' },
-      ],
+      api: getTypeChild,
+      apiParamKey: 'parentCode',
+      initFetchParams: {
+        repId: repId,
+      },
+      isLeaf: (record) => {
+        return !(record.proofread_num > 0);
+      },
     },
-    colProps: { span: 8 },
   },
 ];
 export const InfoFormSchema: FormSchema[] = [
@@ -312,6 +301,11 @@ export const InfoFormSchema: FormSchema[] = [
       if (values.id) return true;
       else return false;
     },
+  },
+  {
+    field: 'alias',
+    label: '别名',
+    component: 'Input',
   },
   {
     field: 'categories',
@@ -394,14 +388,79 @@ export const InfoFormSchema: FormSchema[] = [
     component: 'Input',
   },
   {
-    field: 'mode',
-    label: '版本',
+    field: 'era_name',
+    label: '年号',
+    component: 'Input',
+  },
+  {
+    field: 'common_era',
+    label: '公元纪年',
+    component: 'Input',
+  },
+  {
+    field: 'language',
+    label: '文种',
+    component: 'Input',
+  },
+  {
+    field: 'inscription',
+    label: '额题',
+    component: 'Input',
+  },
+  {
+    field: 'main_inscription',
+    label: '首题',
+    component: 'Input',
+  },
+  {
+    field: 'material',
+    label: '材质',
+    component: 'Input',
+  },
+  {
+    field: 'form',
+    label: '形制',
+    component: 'Input',
+  },
+  {
+    field: 'shape',
+    label: '形款',
+    component: 'Input',
+  },
+  {
+    field: 'composition',
+    label: '撰文',
+    component: 'Input',
+  },
+  {
+    field: 'author',
+    label: '书丹',
+    component: 'Input',
+  },
+  {
+    field: 'inscriber',
+    label: '刊石',
+    component: 'Input',
+  },
+  {
+    field: 'font',
+    label: '书体',
+    component: 'Input',
+  },
+  {
+    field: 'excavation_site',
+    label: '出土地（或原址）及时间',
+    component: 'Input',
+  },
+  {
+    field: 'collector',
+    label: '收藏者或保护单位',
     component: 'Input',
   },
   {
     field: 'content',
     component: 'Input',
-    label: '内容',
+    label: '叙录',
     defaultValue: '',
     colProps: { span: 24 },
     render: ({ model, field }) => {

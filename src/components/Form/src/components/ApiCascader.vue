@@ -171,7 +171,7 @@
 
       function handleChange(keys, args) {
         emitData.value = keys;
-        emit('defaultChange', keys, args);
+        emit('change', keys, args);
       }
 
       function handleRenderDisplay({ labels, selectedOptions }) {

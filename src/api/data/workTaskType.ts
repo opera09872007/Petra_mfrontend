@@ -17,3 +17,6 @@ export const TaskTypeDeleteApi = (task_id: number) =>
 
 export const getTaskTypeTreeList = (repId: number) =>
   defHttp.get<Recordable[]>({ url: Api.task + 'tree/', params: { repId: repId } });
+
+export const getTypeChild = (repId: number) =>
+  defHttp.get<Recordable[]>({ url: Api.task + 'type-child/', params: repId });

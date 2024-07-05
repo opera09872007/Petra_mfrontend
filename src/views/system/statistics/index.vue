@@ -25,6 +25,18 @@
         useSearchForm: true,
         showTableSetting: true,
         bordered: true,
+        handleSearchInfoFn(info) {
+          if (info.workflow_type_id) {
+            let workflow_type_id = info.workflow_type_id[1];
+            info.workflow_type_id = workflow_type_id;
+          }
+          if (info.fieldTime) {
+            info.startTime = info.fieldTime[0];
+            info.endTime = info.fieldTime[1];
+          }
+          info.fieldTime = '';
+          return info;
+        },
       });
 
       return {

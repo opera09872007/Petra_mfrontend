@@ -14,6 +14,9 @@ export const getTaskListByPage = (params?: WorkflowTaskPageParams) =>
 export const getTaskDetailApi = (taskId: number) =>
   defHttp.get<void>({ url: Api.TASKS + taskId + '/' });
 
+export const taskDeleteApi = (taskId: number) =>
+  defHttp.delete<void>({ url: Api.TASKS + taskId + '/' });
+
 export const getNodesByDetailIdApi = (detailId: number) =>
   defHttp.get<void>({ url: Api.NODES + '?detailId=' + detailId });
 

@@ -25,6 +25,7 @@
   import { useGo } from '/@/hooks/web/usePage';
   import { useModal } from '/@/components/Modal';
   import { useUserStore } from '/@/store/modules/user';
+  import { usePermission } from '/@/hooks/web/usePermission';
   export default defineComponent({
     name: 'DataTaskManagement',
     components: { BasicTable, TableAction },
@@ -32,6 +33,10 @@
       const go = useGo();
       const userStore = useUserStore();
       const searchInfo = reactive<Recordable>({});
+      const { hasPermission } = usePermission();
+      if (!hasPermission('1006')) {
+        searchInfo.id = userStore.getUserInfo.userId;
+      }
       searchInfo.repId = userStore.getUserInfo.now_work_repository;
       const [registerModal, {}] = useModal();
       const [registerTable, { reload }] = useTable({
@@ -41,6 +46,13 @@
         formConfig: {
           labelWidth: 120,
           schemas: searchFormSchema,
+        },
+        handleSearchInfoFn(info) {
+          if (info.workflow_type_id) {
+            let workflow_type_id = info.workflow_type_id[1];
+            info.workflow_type_id = workflow_type_id;
+          }
+          return info;
         },
         useSearchForm: true,
         showTableSetting: true,

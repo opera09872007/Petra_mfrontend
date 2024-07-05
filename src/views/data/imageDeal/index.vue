@@ -93,6 +93,15 @@
               tooltip: '编辑资源',
               onClick: handleEdit.bind(null, record),
             },
+            {
+              icon: 'ant-design:delete-outlined',
+              color: 'error',
+              tooltip: '删除此资源',
+              popConfirm: {
+                title: '是否确认删除',
+                confirm: handleDelete.bind(null, record),
+              },
+            },
           ]"
         />
       </template>
@@ -113,7 +122,7 @@
 
   import { Select } from 'ant-design-vue';
 
-  import { TaskAddApi } from '/@/api/data/workflowTask';
+  import { TaskAddApi, taskDeleteApi } from '/@/api/data/workflowTask';
   import { useUserStore } from '/@/store/modules/user';
   import { getTaskTypeList } from '/@/api/data/workTaskType';
   import { useModal } from '/@/components/Modal';
@@ -237,6 +246,15 @@
         }
       }
 
+      async function handleDelete(record: Recordable) {
+        try {
+          await taskDeleteApi(record.id);
+        } catch (error) {
+          console.log(error);
+        }
+        reload();
+      }
+
       function handleSuccess({ isUpdate, values }) {
         if (isUpdate) {
           updateTableDataRecord(values.id, values);
@@ -270,6 +288,7 @@
         registerModal,
         handleSuccess,
         taskOptions0,
+        handleDelete,
       };
     },
   });

@@ -3,6 +3,11 @@ import { FormSchema } from '/@/components/Table';
 
 export const columns: BasicColumn[] = [
   {
+    title: 'id',
+    dataIndex: 'id',
+    align: 'left',
+  },
+  {
     title: '分类名称',
     dataIndex: 'name',
     align: 'left',

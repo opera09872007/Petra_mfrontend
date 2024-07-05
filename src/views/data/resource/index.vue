@@ -53,7 +53,7 @@
     name: 'ResourceManagement',
     components: { BasicTable, ResourceModal, TableAction, ResourceDrawer },
     setup() {
-      const [registerDrawer, { openDrawer }] = useDrawer();
+      const [registerDrawer, { openDrawer }] = useDrawer({});
       const [registerModal, { openModal }] = useModal();
       const [registerTable, { reload, expandAll, collapseAll }] = useTable({
         title: '资源库列表',

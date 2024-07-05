@@ -122,12 +122,6 @@ export const searchFormSchema: FormSchema[] = [
     component: 'Input',
     colProps: { span: 8 },
   },
-  {
-    field: 'creator',
-    label: '创建人',
-    component: 'Input',
-    colProps: { span: 8 },
-  },
 ];
 export const InfoFormSchema: FormSchema[] = [
   {

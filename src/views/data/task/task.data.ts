@@ -1,8 +1,11 @@
 import { BasicColumn } from '/@/components/Table';
 import { FormSchema } from '/@/components/Table';
+import { getTypeChild } from '/@/api/data/workTaskType';
+import { useUserStore } from '/@/store/modules/user';
 import { h } from 'vue';
 import { Tag } from 'ant-design-vue';
-
+const userStore = useUserStore();
+const repId = userStore.getUserInfo.now_work_repository;
 export const columns: BasicColumn[] = [
   {
     title: '任务名称',
@@ -55,6 +58,7 @@ export const searchFormSchema: FormSchema[] = [
     component: 'Input',
     colProps: { span: 8 },
   },
+
   {
     field: 'now_handler_name',
     label: '当前处理人',
@@ -62,21 +66,22 @@ export const searchFormSchema: FormSchema[] = [
     colProps: { span: 8 },
   },
   {
-    field: 'status',
+    field: 'workflow_type_id',
+    component: 'ApiCascader',
     label: '状态',
-    component: 'Select',
-    componentProps: {
-      options: [
-        { label: '新建', value: '0' },
-        { label: '校对中', value: '1' },
-        { label: '校对完成', value: '2' },
-        { label: '校对错误', value: '3' },
-        { label: '修改完成', value: '4' },
-        { label: '图像处理中', value: '5' },
-        { label: '图像处理完成', value: '6' },
-      ],
+    colProps: {
+      span: 8,
     },
-    colProps: { span: 8 },
+    componentProps: {
+      api: getTypeChild,
+      apiParamKey: 'parentCode',
+      initFetchParams: {
+        repId: repId,
+      },
+      isLeaf: (record) => {
+        return !(record.proofread_num > 0);
+      },
+    },
   },
 ];
 

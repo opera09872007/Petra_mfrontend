@@ -42,6 +42,17 @@
       :load-data="onLoadData"
     >
       <template #toolbar>
+        <BatchUpload
+          :maxSize="1024"
+          :minSize="0.0001"
+          :maxNumber="1000"
+          :repId="searchInfo.repId"
+          :endPoint="endPoint"
+          :bucketName="bucketName"
+          @change="handleChange"
+          :regStr="regStr"
+          class="my-5"
+        />
         <a-button type="primary" @click="handleCreate">新增资源</a-button>
         <a-button type="primary" @click="expandAll">展开全部</a-button>
         <a-button type="primary" @click="collapseAll">折叠全部</a-button>
@@ -99,7 +110,59 @@
             },
           ]"
         />
-
+        <TableAction
+          v-if="
+            column.dataIndex == 'action' &&
+            hasPermission('1006') &&
+            Number(record.workflow_type_number) % 5 == 0 &&
+            record.is_null == 0 &&
+            record.dealer_id != userId
+          "
+          :actions="[
+            {
+              icon: 'ant-design:plus-outlined',
+              tooltip: '添加子类',
+              onClick: handleAdd.bind(null, record),
+            },
+            {
+              icon: 'clarity:note-edit-line',
+              tooltip: '编辑资源',
+              onClick: handleEdit.bind(null, record),
+            },
+            {
+              icon: 'ant-design:bars-outlined',
+              tooltip: '查看资源详情',
+              onClick: handleView.bind(null, record),
+            },
+            {
+              icon: 'ant-design:retweet-outlined',
+              color: 'success',
+              tooltip: '重置',
+              popConfirm: {
+                title: '是否重置当前对象的所有状态',
+                confirm: handleReset.bind(null, record),
+              },
+              ifShow: hasPermission('1005'),
+            },
+            {
+              icon: 'ant-design:delete-outlined',
+              color: 'error',
+              tooltip: '删除此资源',
+              popConfirm: {
+                title: '是否确认删除',
+                confirm: handleDelete.bind(null, record),
+              },
+            },
+            {
+              icon: 'ant-design:check-outlined',
+              tooltip: '完成',
+              popConfirm: {
+                title: '是否确认完成',
+                confirm: handleDone.bind(null, record),
+              },
+            },
+          ]"
+        />
         <TableAction
           v-if="
             column.dataIndex == 'action' &&
@@ -184,6 +247,7 @@
   import { useModal } from '/@/components/Modal';
   import ListModal from './ListModal.vue';
 
+  import { BatchUpload } from './BatchUploaderModal';
   import { columns, searchFormSchema } from './list.data';
   import { useGo } from '/@/hooks/web/usePage';
   import { usePermission } from '/@/hooks/web/usePermission';
@@ -191,10 +255,10 @@
 
   import { Spin, TreeSelect } from 'ant-design-vue';
 
-  import { getRepositoryTree, getCateByResIdApi } from '/@/api/data/repository';
+  import { getRepositoryTree, getCateByResIdApi, getNameAndPathApi } from '/@/api/data/repository';
+
   import { useMessage } from '/@/hooks/web/useMessage';
   const { createMessage } = useMessage();
-
   export default defineComponent({
     name: 'DataListManagement',
     components: {
@@ -205,6 +269,7 @@
       BasicTree,
       Spin,
       TreeSelect,
+      BatchUpload,
     },
     setup() {
       const go = useGo();
@@ -218,6 +283,9 @@
       const searchInfo = reactive<Recordable>({});
       const Infodata = ref<Recordable[]>([]);
       const userStore = useUserStore();
+      const endPoint = userStore.getUserInfo.end_point;
+      const bucketName = ref<string>();
+      const regStr = ref<string>();
       if (!hasPermission('1000')) {
         searchInfo.id = userStore.getUserInfo.userId;
       }
@@ -238,6 +306,10 @@
         showTableSetting: true,
         bordered: true,
         handleSearchInfoFn(info) {
+          if (info.workflow_type_id) {
+            let workflow_type_id = info.workflow_type_id[1];
+            info.workflow_type_id = workflow_type_id;
+          }
           return info;
         },
         actionColumn: {
@@ -344,6 +416,17 @@
         fetch();
       });
       const timer = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      function generateRegex(str: string): string {
+        if (str) {
+          const regexStr = str.replace(/0/g, '\\d');
+          const regexStrWithDash = regexStr.replace(/-/g, '-');
+          const regex = new RegExp(`^${regexStrWithDash}$`);
+          return regex.toString();
+        } else {
+          return '';
+        }
+      }
+
       async function loadTreeData(value) {
         try {
           searchInfo.cateId = -1;
@@ -356,7 +439,14 @@
           });
 
           searchInfo.repId = value;
-
+          console.log(searchInfo.repId);
+          const res = await getNameAndPathApi(value);
+          if (res) {
+            regStr.value = generateRegex(res.path);
+            bucketName.value = res.name;
+          } else {
+            createMessage.error('查询出错，请联系管理员');
+          }
           reload();
         } catch (error) {
           console.log(error);
@@ -390,6 +480,13 @@
         //   }, 1000);
         // });
       }
+
+      async function handleChange(status: string) {
+        if (status == 'success') {
+          reload();
+          createMessage.success('批量上传全部完成，现在可以关闭上传窗口');
+        }
+      }
       return {
         hasPermission,
         registerTable,
@@ -420,6 +517,10 @@
         onLoadData,
         handleReset,
         userId,
+        endPoint,
+        bucketName,
+        regStr,
+        handleChange,
       };
     },
   });

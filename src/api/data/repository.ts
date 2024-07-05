@@ -31,3 +31,6 @@ export const setUserRepApi = (repositoryId: number) =>
 
 export const getTaskTypeApi = (repositoryId: number) =>
   defHttp.get<void>({ url: Api.Repositories + repositoryId + '/' + 'task-type/' });
+
+export const getNameAndPathApi = (repositoryId: number) =>
+  defHttp.get<void>({ url: Api.Repositories + repositoryId + '/' + 'name-path/' });

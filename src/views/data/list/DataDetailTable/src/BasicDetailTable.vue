@@ -17,8 +17,8 @@
           />
           <BasicUpload
             v-if="showUpload"
-            :maxSize="20000000"
-            :minSize="10"
+            :maxSize="1024"
+            :minSize="0.0001"
             :maxNumber="200"
             :pathName="pathName"
             :bucketName="bucketName"
@@ -223,7 +223,7 @@
   } from '/@/api/data/detail';
   import { getPresignedObjects } from '/@/api/S3Upload/upload';
   import axios from 'axios';
-
+  import { Base64 } from 'js-base64';
   export default defineComponent({
     name: 'BasicDetailTable',
     components: {
@@ -459,19 +459,26 @@
           bucketName: bucketName.value,
           objectName: record.img_path,
         });
-
-        var encode = encodeURI(PresignedUrl);
-        var base64 = btoa(encode);
-
-        window.open('http://' + fileviewUrl + '/onlinePreview?url=' + base64);
+        window.open(
+          'http://' +
+            fileviewUrl +
+            '/onlinePreview?url=' +
+            encodeURIComponent(Base64.encode(PresignedUrl)),
+        );
       }
       async function handleShowText(record: Recordable) {
+        let img_path = record.img_path.replace(/\.[^.]+$/, '.html');
         var PresignedUrl = await getPresignedObjects({
           bucketName: bucketName.value + '-documents',
-          objectName: record.img_path.replace('.tif', '.html'),
+          objectName: img_path,
         });
-
-        window.open(PresignedUrl, record.img_path.replace('.tif', '.html'));
+        // window.open(
+        //   'http://' +
+        //     fileviewUrl +
+        //     '/onlinePreview?url=' +
+        //     encodeURIComponent(Base64.encode(PresignedUrl)),
+        // );
+        window.open(PresignedUrl, img_path);
       }
       async function handleEdit(record: Recordable) {
         if (record.content_url) {

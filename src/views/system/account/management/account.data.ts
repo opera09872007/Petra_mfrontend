@@ -96,6 +96,18 @@ export const searchFormSchema: FormSchema[] = [
     component: 'Input',
     colProps: { span: 8 },
   },
+  {
+    field: 'is_active',
+    label: '状态',
+    component: 'Select',
+    componentProps: {
+      options: [
+        { label: '已启用', value: '1' },
+        { label: '已停用', value: '0' },
+      ],
+    },
+    colProps: { span: 8 },
+  },
 ];
 
 export const accountFormSchema: FormSchema[] = [

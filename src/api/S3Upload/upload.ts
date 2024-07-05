@@ -10,8 +10,11 @@ enum Api {
 }
 // Get personal center-basic settings
 
-export const createMultipartUpload = (params?: { bucketName: string; objectName: string }) =>
-  defHttp.get<void>({ url: Api.getUpoladId, params });
+export const createMultipartUpload = (params?: {
+  bucketName: string;
+  objectName: string;
+  fileType: string;
+}) => defHttp.get<void>({ url: Api.getUpoladId, params });
 
 export const getPresignedUrls = (params?: {
   bucketName: string;

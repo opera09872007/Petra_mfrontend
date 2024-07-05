@@ -136,13 +136,6 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    field: 'proofread_num',
-    label: '任务校对次数',
-    component: 'InputNumber',
-    required: true,
-    defaultValue: 1,
-  },
-  {
     label: '角色访问权限',
     field: 'roles',
     component: 'ApiSelect',
@@ -172,6 +165,21 @@ export const formSchema: FormSchema[] = [
       options: [
         { label: '包含', value: '1' },
         { label: '未包含', value: '0' },
+      ],
+    },
+  },
+  {
+    field: 'is_proofread',
+    label: '是否校对',
+    component: 'RadioButtonGroup',
+    defaultValue: '1',
+    colProps: {
+      span: 16,
+    },
+    componentProps: {
+      options: [
+        { label: '是', value: '1' },
+        { label: '否', value: '0' },
       ],
     },
   },
@@ -211,11 +219,24 @@ export const taskSchema: FormSchema[] = [
     required: true,
   },
   {
-    field: 'proofread_num',
+    field: 'proofreadNum',
     label: '校对次数',
     component: 'InputNumber',
     required: true,
     defaultValue: 1,
+  },
+  {
+    field: 'imgType',
+    label: '图片标识',
+    component: 'InputNumber',
+    required: true,
+    defaultValue: 0,
+  },
+  {
+    field: 'imgPathType',
+    label: '图片路径标识',
+    component: 'Input',
+    required: true,
   },
   {
     field: 'priority',
@@ -249,6 +270,12 @@ export const taskcolumns: BasicColumn[] = [
   {
     title: '图片标识',
     dataIndex: 'img_type',
+    editRow: false,
+    width: 50,
+  },
+  {
+    title: '图片路径标识',
+    dataIndex: 'img_path_type',
     editRow: false,
     width: 50,
   },

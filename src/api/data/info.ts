@@ -49,3 +49,9 @@ export const getCateByInfoIdApi = (infoId: number) =>
 
 export const getImgTypeByInfoIdList = (infoId: number) =>
   defHttp.get<void>({ url: Api.Infos + infoId + '/' + 'task-img-type/' });
+
+export const infoBatchUploadApi = (datas: string, repId: number, taskId: number) =>
+  defHttp.post<void>({
+    url: Api.Infos + 'batch-upload/',
+    params: { datas: datas, repId: repId, taskId: taskId },
+  });

@@ -135,12 +135,6 @@ export const searchFormSchema: FormSchema[] = [
     component: 'Input',
     colProps: { span: 8 },
   },
-  {
-    field: 'creator',
-    label: '创建人',
-    component: 'Input',
-    colProps: { span: 8 },
-  },
 ];
 export const InfoFormSchema: FormSchema[] = [
   {
@@ -164,6 +158,11 @@ export const InfoFormSchema: FormSchema[] = [
       if (values.id) return true;
       else return false;
     },
+  },
+  {
+    field: 'alias',
+    label: '别名',
+    component: 'Input',
   },
   {
     field: 'categories',
@@ -200,7 +199,6 @@ export const InfoFormSchema: FormSchema[] = [
     label: '所属父级',
     component: 'Input',
     dynamicDisabled: true,
-    show: false,
   },
   {
     field: 'parent',
@@ -247,14 +245,79 @@ export const InfoFormSchema: FormSchema[] = [
     component: 'Input',
   },
   {
-    field: 'mode',
-    label: '版本',
+    field: 'era_name',
+    label: '年号',
+    component: 'Input',
+  },
+  {
+    field: 'common_era',
+    label: '公元纪年',
+    component: 'Input',
+  },
+  {
+    field: 'language',
+    label: '文种',
+    component: 'Input',
+  },
+  {
+    field: 'inscription',
+    label: '额题',
+    component: 'Input',
+  },
+  {
+    field: 'main_inscription',
+    label: '首题',
+    component: 'Input',
+  },
+  {
+    field: 'material',
+    label: '材质',
+    component: 'Input',
+  },
+  {
+    field: 'form',
+    label: '形制',
+    component: 'Input',
+  },
+  {
+    field: 'shape',
+    label: '形款',
+    component: 'Input',
+  },
+  {
+    field: 'composition',
+    label: '撰文',
+    component: 'Input',
+  },
+  {
+    field: 'author',
+    label: '书丹',
+    component: 'Input',
+  },
+  {
+    field: 'inscriber',
+    label: '刊石',
+    component: 'Input',
+  },
+  {
+    field: 'font',
+    label: '书体',
+    component: 'Input',
+  },
+  {
+    field: 'excavation_site',
+    label: '出土地（或原址）及时间',
+    component: 'Input',
+  },
+  {
+    field: 'collector',
+    label: '收藏者或保护单位',
     component: 'Input',
   },
   {
     field: 'content',
     component: 'Input',
-    label: '内容',
+    label: '叙录',
     defaultValue: '',
     colProps: { span: 24 },
     render: ({ model, field }) => {

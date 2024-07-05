@@ -43,6 +43,11 @@
           } else {
             data.record.contain_text = '0';
           }
+          if (data.record.is_proofread == true) {
+            data.record.is_proofread = '1';
+          } else {
+            data.record.is_proofread = '0';
+          }
           setFieldsValue({
             ...data.record,
           });

@@ -3,6 +3,8 @@ import { defHttp } from '/@/utils/http/axios';
 enum Api {
   Details = '/data/details/',
   imageDealTask = '/data/details/image-deal-task/',
+  BatchCreate = '/data/details/batch-create/',
+  BatchUpdate = '/data/details/batch-update/',
 }
 import { DetailPageParams, DetailPageListGetResultModel } from '../model/dataModel';
 // Get personal center-basic settings
@@ -57,3 +59,9 @@ export const checkProofreadUniqueApi = (detailId: number, userId: number) =>
   defHttp.get<void>({
     url: Api.Details + detailId + '/' + 'check-proofread-unique/?id=' + userId,
   });
+
+export const detailBatchAddApi = (datas: number[], type: number) =>
+  defHttp.post<void>({ url: Api.BatchCreate, params: [datas, type] });
+
+export const detailBatchUploadHtmlFileApi = (datas: any) =>
+  defHttp.post<void>({ url: Api.BatchUpdate, params: datas });
