@@ -332,6 +332,16 @@ export const InfoFormSchema: FormSchema[] = [
       });
     },
   },
+  {
+    field: 'source',
+    label: '著录文献',
+    component: 'InputTextArea',
+    componentProps: {
+      placeholder: '请输入著录文献',
+      rows: 8,
+    },
+    colProps: { span: 18 },
+  },
 ];
 
 export const plugins = [

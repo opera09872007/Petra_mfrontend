@@ -395,6 +395,7 @@
             source: file,
             size: file.size,
           }));
+
           let sub_name = name.substring(0, name.lastIndexOf('-'));
 
           if (fileListIndexAndcode.has(sub_name)) {
@@ -711,7 +712,10 @@
           }
           for (let listIndex = 0; listIndex < fileListRef.value.length; listIndex++) {
             if (!fileListRef.value[listIndex].file) {
-              return createMessage.error('文件和表中的数量未完全关联，请检查表或者文件');
+              return createMessage.error(
+                '文件和表中的数量未完全关联，请检查表或者文件。编号：' +
+                  fileListRef.value[listIndex].self_code,
+              );
             }
           }
           isClickSaveButton.value = false;
@@ -720,7 +724,7 @@
             (item) => item.status === UploadResultStatus.ERROR,
           );
           // const res = await infoBatchUploadApi(fileListRefCopy.value, props.repId);
-          const batchSize = 2;
+          const batchSize = 5;
           var res = [];
           for (let i = 0; i < fileListRefCopy.value.length; i += batchSize) {
             const batch = fileListRefCopy.value.slice(i, i + batchSize);
@@ -879,10 +883,10 @@
             const numCols = range.e.c - range.s.c + 1;
             const numRows = range.e.r - range.s.r + 1;
 
-            if (numCols != 20) {
-              throw new Error('列数不为20');
+            if (numCols != 22) {
+              throw new Error('列数不为22');
             }
-            if (numRows > 100) {
+            if (numRows > 103) {
               throw new Error('列数大于100');
             }
 
@@ -908,6 +912,8 @@
                 'excavation_site',
                 'collector',
                 'content',
+                'source',
+                'phase_num',
               ],
             });
             excelJsonData.shift();

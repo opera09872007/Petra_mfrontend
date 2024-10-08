@@ -26,11 +26,6 @@ export const columns: BasicColumn[] = [
     align: 'left',
   },
   {
-    title: '任务校对次数',
-    dataIndex: 'proofread_num',
-    align: 'left',
-  },
-  {
     title: '角色访问权限',
     dataIndex: 'roles',
     align: 'left',

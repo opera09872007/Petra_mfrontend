@@ -99,6 +99,14 @@ export function createTableColumns(): BasicColumn[] {
       title: '叙录',
     },
     {
+      dataIndex: 'source',
+      title: '著录文献',
+    },
+    {
+      dataIndex: 'phase_num',
+      title: '期数',
+    },
+    {
       dataIndex: 'name',
       title: t('component.upload.fileName'),
       align: 'left',

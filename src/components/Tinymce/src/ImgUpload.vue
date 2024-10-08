@@ -6,7 +6,6 @@
       @change="handleChange"
       :action="rtfUploadUrl"
       :showUploadList="false"
-      :before-upload="beforeUpload"
       accept=".jpg,.jpeg,.gif,.png,.webp"
     >
       <a-button type="primary" v-bind="{ ...getButtonProps }">
@@ -22,7 +21,6 @@
   import { useDesign } from '/@/hooks/web/useDesign';
   import { useGlobSetting } from '/@/hooks/setting';
   import { useI18n } from '/@/hooks/web/useI18n';
-  import { renderAsync } from 'docx-preview';
 
   export default defineComponent({
     name: 'TinymceImageUpload',
@@ -38,6 +36,8 @@
     },
     emits: ['uploading', 'done', 'error'],
     setup(props, { emit }) {
+      let uploading = false;
+
       const { rtfUploadUrl } = useGlobSetting();
       const { t } = useI18n();
       const { prefixCls } = useDesign('tinymce-img-upload');
@@ -48,73 +48,28 @@
           disabled,
         };
       });
-      function beforeUpload() {
-        return false;
-      }
+      // function beforeUpload() {
+      //   return false;
+      // }
 
       function handleChange(info: Recordable) {
         const file = info.file;
         const name = file?.name;
+        const status = file?.status;
+        const url = file?.response?.datas.url;
 
-        if (file) {
-          const reader = new FileReader();
-
-          var a = document.createElement('div');
-          reader.onload = (event) => {
-            const fileData = event.target.result; // 读取文件数据
-            const blob = new Blob([fileData], { type: file.type }); // 创建 Blob 对象
-            console.log(blob); // 在控制台打印 Blob 对象
-            var docxOptions = {
-              className: 'docx',
-              inWrapper: false,
-              ignoreWidth: false,
-              ignoreHeight: false,
-              ignoreFonts: false,
-              breakPages: true,
-              ignoreLastRenderedPageBreak: true,
-              experimental: false,
-              trimXmlDeclaration: true,
-              useBase64URL: false,
-              useMathMLPolyfill: false,
-              renderChanges: false,
-              renderHeaders: true,
-              renderFooters: true,
-              renderFootnotes: true,
-              renderEndnotes: true,
-              debug: false,
-            };
-            renderAsync(blob, a, null, docxOptions).then(() => {
-              console.log(a);
-              emit('done', name, a.outerHTML);
-            });
-          };
-
-          reader.readAsArrayBuffer(file); // 将文件读取为 ArrayBuffer
+        if (status === 'uploading') {
+          if (!uploading) {
+            emit('uploading', name);
+            uploading = true;
+          }
+        } else if (status === 'done') {
+          emit('done', name, url);
+          uploading = false;
+        } else if (status === 'error') {
+          emit('error');
+          uploading = false;
         }
-
-        // console.log('res---->', docData);
-        // console.log(123);
-
-        // console.log(file.originFileObj);
-        // console.log(123);
-        // let ss = '';
-        // //用docx-preview渲染
-        // renderAsync(docData, ss).then((res) => {
-        //   console.log('res---->', res);
-        //   console.log('res---->', ss);
-        // });
-        // if (status === 'uploading') {
-        //   if (!uploading) {
-        //     emit('uploading', name);
-        //     uploading = true;
-        //   }
-        // } else if (status === 'done') {
-        //   emit('done', name, url.replace(/minio1/, imgUrl));
-        //   uploading = false;
-        // } else if (status === 'error') {
-        //   emit('error');
-        //   uploading = false;
-        // }
       }
 
       return {
@@ -123,7 +78,6 @@
         rtfUploadUrl,
         t,
         getButtonProps,
-        beforeUpload,
       };
     },
   });

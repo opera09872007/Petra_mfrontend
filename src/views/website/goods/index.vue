@@ -1,28 +1,36 @@
 <template>
   <div class="vben-basic-table vben-basic-table-form-container">
-    <BasicTable @register="registerTable" @fetch-success="onFetchSuccess">
+    <BasicTable
+      @register="registerTable"
+      @fetch-success="onFetchSuccess"
+      :searchInfo="searchInfo"
+      :current="current"
+      :pagination="{
+        current: current,
+      }"
+      @change="handleTableChange"
+    >
       <template #toolbar>
-        <a-button type="primary" @click="handleCreate"> 新增资源库 </a-button>
-        <a-button type="primary" @click="expandAll">展开全部</a-button>
-        <a-button type="primary" @click="collapseAll">折叠全部</a-button>
+        <a-button type="primary" @click="handleCreate"> 新增商品 </a-button>
       </template>
       <template #action="{ record }">
         <TableAction
           :actions="[
             {
-              icon: 'clarity:note-edit-line',
-              tooltip: '编辑资源库',
-              onClick: handleEdit.bind(null, record),
+              icon: 'clarity:info-standard-line',
+              tooltip: '查看商品详细',
+              onClick: handleView.bind(null, record),
             },
             {
-              icon: 'ant-design:bars-outlined',
-              tooltip: '编辑任务流程',
-              onClick: handleEditTask.bind(null, record),
+              icon: 'clarity:note-edit-line',
+              tooltip: '编辑商品',
+              onClick: handleEdit.bind(null, record),
             },
+
             {
               icon: 'ant-design:delete-outlined',
               color: 'error',
-              tooltip: '删除资源库',
+              tooltip: '删除商品',
               popConfirm: {
                 title: '是否确认删除',
                 confirm: handleDelete.bind(null, record),
@@ -32,38 +40,36 @@
         />
       </template>
     </BasicTable>
-    <ResourceDrawer @register="registerDrawer" @success="handleSuccess" />
-    <ResourceModal @register="registerModal" @success="handleSuccess" />
+    <GoodsModal @register="registerModal" @success="handleSuccess" />
   </div>
 </template>
 <script lang="ts">
-  import { defineComponent, nextTick } from 'vue';
-  import { getRepositoryList, repositoryDeleteApi } from '/@/api/data/repository';
+  import { defineComponent, nextTick, ref, reactive } from 'vue';
+
   import { BasicTable, useTable, TableAction } from '/@/components/Table';
+  import { getgoodsList, goodsDeleteApi } from '/@/api/website/goods';
 
   import { useModal } from '/@/components/Modal';
-  import { useDrawer } from '/@/components/Drawer';
-  import ResourceDrawer from './ResourceDrawer.vue';
-  import ResourceModal from './ResourceModal.vue';
+  import GoodsModal from './GoodsModal.vue';
 
-  import { columns, searchFormSchema } from './resource.data';
+  import { columns } from './goods.data';
+  import { useGo } from '/@/hooks/web/usePage';
 
   export default defineComponent({
     name: 'ResourceManagement',
-    components: { BasicTable, ResourceModal, TableAction, ResourceDrawer },
+    components: { BasicTable, GoodsModal, TableAction },
     setup() {
-      const [registerDrawer, { openDrawer }] = useDrawer({});
+      const go = useGo();
+      const current = ref(1);
+      const searchInfo = reactive<Recordable>({});
       const [registerModal, { openModal }] = useModal();
       const [registerTable, { reload, expandAll, collapseAll }] = useTable({
-        title: '资源库列表',
-        api: getRepositoryList,
+        title: '商品列表',
+        api: getgoodsList,
         columns,
         formConfig: {
           labelWidth: 120,
-          schemas: searchFormSchema,
         },
-        isTreeTable: true,
-        pagination: false,
         striped: false,
         useSearchForm: false,
         showTableSetting: true,
@@ -75,7 +81,6 @@
           title: '操作',
           dataIndex: 'action',
           slots: { customRender: 'action' },
-          fixed: undefined,
         },
       });
 
@@ -93,15 +98,10 @@
           currentId: record.id,
         });
       }
-      function handleEditTask(record: Recordable) {
-        openDrawer(true, {
-          record,
-          currentId: record.id,
-        });
-      }
+
       async function handleDelete(record: Recordable) {
         try {
-          await repositoryDeleteApi(record.id);
+          await goodsDeleteApi(record.id);
         } catch (error) {
           console.log(error);
         }
@@ -114,18 +114,26 @@
       function onFetchSuccess() {
         nextTick(expandAll);
       }
+      function handleTableChange(pagination) {
+        current.value = pagination.current;
+      }
+      function handleView(record: Recordable) {
+        go('/website/goods_detail/' + record.id);
+      }
       return {
-        registerDrawer,
         registerTable,
         registerModal,
         handleCreate,
         handleEdit,
-        handleEditTask,
         handleDelete,
         handleSuccess,
         onFetchSuccess,
         collapseAll,
         expandAll,
+        searchInfo,
+        current,
+        handleTableChange,
+        handleView,
       };
     },
   });
