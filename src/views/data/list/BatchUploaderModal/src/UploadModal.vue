@@ -62,12 +62,13 @@
     <a-tag color="blue">上传列表文件数量：{{ fileNum }}</a-tag>
     <a-tag color="green">上传成功文件数量：{{ uploadedNum }}</a-tag>
     <a-tag color="red" style="margin-bottom: 10px"> 上传错误文件数量：{{ errNum }}</a-tag>
-    <FileList :dataSource="fileListRef" :columns="columns" :actionColumn="actionColumn" />
+    <Table :dataSource="fileListRef" :columns="columns" />
+    <!-- <FileList :dataSource="fileListRef" :columns="columns" :actionColumn="actionColumn" /> -->
   </BasicModal>
 </template>
 <script lang="ts">
   import { defineComponent, reactive, ref, toRefs, unref, computed, PropType, watch } from 'vue';
-  import { Upload, Alert, Tag } from 'ant-design-vue';
+  import { Upload, Alert, Tag, Table } from 'ant-design-vue';
 
   import { BasicModal, useModalInner } from '/@/components/Modal';
   //   import { BasicTable, useTable } from '/@/components/Table';
@@ -82,7 +83,6 @@
   import * as XLSX from 'xlsx';
   import { buildUUID } from '/@/utils/uuid';
   import { cloneDeep } from 'lodash-es';
-  import FileList from './FileList.vue';
   import { useI18n } from '/@/hooks/web/useI18n';
   // import AWS from 'aws-sdk';
   import {
@@ -98,7 +98,14 @@
   import { useUserStore } from '/@/store/modules/user';
   import { Select } from 'ant-design-vue';
   export default defineComponent({
-    components: { BasicModal, Upload, Alert, FileList, [Tag.name]: Tag, [Select.name]: Select },
+    components: {
+      BasicModal,
+      Upload,
+      Alert,
+      [Tag.name]: Tag,
+      [Select.name]: Select,
+      Table,
+    },
     props: {
       ...basicProps,
       previewFileList: {
@@ -351,7 +358,7 @@
         });
       }
       // 上传前校验
-      function beforeUpload(file: File) {
+      async function beforeUpload(file: File) {
         try {
           isUploadingRef.value = 0;
           const { size, name } = file;
@@ -403,8 +410,10 @@
             if (typeof local != 'undefined') {
               if (!fileNameSet.has(file.name)) {
                 fileNameSet.add(file.name);
-
-                HtmlAndDocMap.set(file.name.substring(0, file.name.lastIndexOf('.')), file.name);
+                const header = await getFileHeader(file, 4);
+                if (isImage(header)) {
+                  HtmlAndDocMap.set(file.name.substring(0, file.name.lastIndexOf('.')), file.name);
+                }
                 if (fileListRef.value[local].file) {
                   let newFileItem = cloneDeep(fileListRefCopy.value[local]);
                   newFileItem.uuid = buildUUID();
@@ -886,7 +895,7 @@
             if (numCols != 22) {
               throw new Error('列数不为22');
             }
-            if (numRows > 103) {
+            if (numRows > 303) {
               throw new Error('列数大于100');
             }
 

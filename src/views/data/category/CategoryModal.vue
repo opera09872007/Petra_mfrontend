@@ -68,6 +68,9 @@
       async function handleSubmit() {
         try {
           const values = await validate();
+          if (values.parent == undefined) {
+            values.parent = null;
+          }
           setModalProps({ confirmLoading: true });
           // TODO custom api
           if (unref(repId) === -1 || unref(repId) == undefined) {

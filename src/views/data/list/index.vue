@@ -45,7 +45,7 @@
         <BatchUpload
           :maxSize="1024"
           :minSize="0.0001"
-          :maxNumber="1000"
+          :maxNumber="2000"
           :repId="searchInfo.repId"
           :endPoint="endPoint"
           :bucketName="bucketName"

@@ -111,11 +111,12 @@
           });
           const batchSize = 10;
           await uploadInBatches(fileListArray, batchSize);
+          emit('change', 'success');
         } catch (error) {
           createMessage.error('上传失败，请重试或联系管理员');
+          emit('change', 'error');
         }
         handleModal(false);
-        emit('change', 'success');
       }
 
       async function uploadInBatches(fileListArray, batchSize) {
@@ -139,7 +140,7 @@
           } catch (error) {
             console.error('上传失败，请重试或联系管理员 ' + i, error);
             createMessage.error('上传失败，请重试或联系管理员');
-            break;
+            throw new Error('上传出错');
           }
         }
       }

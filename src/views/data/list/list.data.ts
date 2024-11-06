@@ -424,7 +424,7 @@ export const InfoFormSchema: FormSchema[] = [
   },
   {
     field: 'shape',
-    label: '形款',
+    label: '行款',
     component: 'Input',
   },
   {
