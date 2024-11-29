@@ -2,9 +2,11 @@ import { BasicColumn } from '/@/components/Table';
 import { FormSchema } from '/@/components/Table';
 import { h } from 'vue';
 import { Tinymce } from '/@/components/Tinymce/index';
-import { InputNumber, Switch, Input } from 'ant-design-vue';
+import { InputNumber, Switch, Space } from 'ant-design-vue';
 import { useMessage } from '/@/hooks/web/useMessage';
 import { setGoodsStatus } from '/@/api/website/goods';
+
+import { BasicUpload } from '/@/components/Upload';
 import { uploadApi } from '/@/api/sys/upload';
 export const columns: BasicColumn[] = [
   {
@@ -199,26 +201,25 @@ export const formSchema: FormSchema[] = [
   },
   {
     field: 'img',
-    label: '商品图片地址',
+    label: '商品图片',
     component: 'Input',
     colProps: { span: 16 },
     render: ({ model, field }) => {
-      return h(Input, {
-        value: model[field],
-        disabled: true,
-      });
-    },
-  },
-  {
-    field: 'img_upload',
-    component: 'Upload',
-    label: '上传图片',
-    colProps: {
-      span: 12,
-    },
-    componentProps: {
-      api: uploadApi,
-      maxNumber: 1,
+      return h(Space, { align: 'center', size: [2, 10], wrap: true }, () => [
+        h(BasicUpload, {
+          api: uploadApi,
+          maxNumber: 1,
+          emptyHidePreview: true,
+          onChange: (value) => {
+            model[field] = value[0];
+          },
+        }),
+
+        h('img', {
+          alt: `商品图片`,
+          src: model[field],
+        }),
+      ]);
     },
   },
   {

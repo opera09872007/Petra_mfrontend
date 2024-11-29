@@ -184,6 +184,11 @@ export function createTableColumns(): BasicColumn[] {
         return text;
       },
     },
+    {
+      dataIndex: 'action',
+      title: '操作',
+      width: '5%',
+    },
   ];
 }
 export function createActionColumn(handleRemove: Function, handleRetry: Function): BasicColumn {

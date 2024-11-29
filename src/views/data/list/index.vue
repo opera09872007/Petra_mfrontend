@@ -439,7 +439,6 @@
           });
 
           searchInfo.repId = value;
-          console.log(searchInfo.repId);
           const res = await getNameAndPathApi(value);
           if (res) {
             regStr.value = generateRegex(res.path);

@@ -48,9 +48,6 @@
       async function handleSubmit() {
         try {
           const values = await validate();
-          if (values.img_upload != undefined) {
-            values.img = values.img_upload[0];
-          }
           setModalProps({ confirmLoading: true });
           // TODO custom api
           !unref(isUpdate)

@@ -62,7 +62,26 @@
     <a-tag color="blue">上传列表文件数量：{{ fileNum }}</a-tag>
     <a-tag color="green">上传成功文件数量：{{ uploadedNum }}</a-tag>
     <a-tag color="red" style="margin-bottom: 10px"> 上传错误文件数量：{{ errNum }}</a-tag>
-    <Table :dataSource="fileListRef" :columns="columns" />
+    <Table :dataSource="fileListRef" :columns="columns">
+      <template #bodyCell="{ column, record }">
+        <TableAction
+          v-if="column.dataIndex == 'action'"
+          :actions="[
+            {
+              label: '删除',
+              tooltip: '删除',
+              color: 'error',
+              onClick: handleRemove.bind(null, record),
+            },
+            {
+              label: '重试',
+              tooltip: '重试',
+              onClick: handleRetry.bind(null, record),
+            },
+          ]"
+        />
+      </template>
+    </Table>
     <!-- <FileList :dataSource="fileListRef" :columns="columns" :actionColumn="actionColumn" /> -->
   </BasicModal>
 </template>
@@ -79,6 +98,7 @@
   import { FileItem, UploadResultStatus } from './typing';
   import { basicProps } from './props';
   import { createTableColumns, createActionColumn } from './data';
+  import { TableAction } from '/@/components/Table';
   // utils
   import * as XLSX from 'xlsx';
   import { buildUUID } from '/@/utils/uuid';
@@ -105,6 +125,7 @@
       [Tag.name]: Tag,
       [Select.name]: Select,
       Table,
+      TableAction,
     },
     props: {
       ...basicProps,
@@ -201,8 +222,6 @@
           Number(userStore.getUserInfo.now_work_repository),
         );
         task_type.value = taskOptions.value[0].id;
-        console.log(1234);
-        console.log(task_type.value);
       };
       getTaskOptionsAndList();
       const getIsSelectFile = computed(() => {
@@ -774,11 +793,8 @@
                   await filterAndStoreChunks(fileListRef.value[index]);
                 }
               }
-              uploadApiByItem3(fileListRef.value, 0);
-              console.log(fileListRef.value);
-            } else {
-              uploadApiByItem3(fileListRef.value, 0);
             }
+            uploadApiByItem3(fileListRef.value, 0);
           }
         } catch (error) {
           isUploadingRef.value = 0;
@@ -978,6 +994,8 @@
         handleStartUpload,
         handleOk,
         handleCloseFunc,
+        handleRemove,
+        handleRetry,
         getIsSelectFile,
         getUploadBtnText,
         t,

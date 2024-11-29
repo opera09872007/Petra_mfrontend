@@ -1,6 +1,11 @@
 import { BasicColumn } from '/@/components/Table';
 import { FormSchema } from '/@/components/Table';
 import { getAllRoleList } from '/@/api/system';
+import { Space } from 'ant-design-vue';
+import { h } from 'vue';
+import { BasicUpload } from '/@/components/Upload';
+import { uploadApi } from '/@/api/sys/upload';
+
 const validatorName = async (rule, value) => {
   if (!value) return;
   if (!/^[a-z]+$/.test(value)) {
@@ -195,6 +200,29 @@ export const formSchema: FormSchema[] = [
         { label: '启用', value: '1' },
         { label: '禁用', value: '0' },
       ],
+    },
+  },
+  {
+    field: 'img',
+    label: '图片',
+    component: 'Input',
+    colProps: { span: 16 },
+    render: ({ model, field }) => {
+      return h(Space, { align: 'center', size: [2, 10], wrap: true }, () => [
+        h(BasicUpload, {
+          api: uploadApi,
+          maxNumber: 1,
+          emptyHidePreview: true,
+          onChange: (value) => {
+            model[field] = value[0];
+          },
+        }),
+
+        h('img', {
+          alt: `图片`,
+          src: model[field],
+        }),
+      ]);
     },
   },
   {

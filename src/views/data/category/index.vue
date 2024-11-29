@@ -79,6 +79,7 @@
         showTableSetting: true,
         bordered: true,
         showIndexColumn: false,
+        indentSize: 5,
         canResize: false,
         actionColumn: {
           width: 80,

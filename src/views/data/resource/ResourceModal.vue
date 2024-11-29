@@ -51,6 +51,7 @@
           } else {
             data.record.is_proofread = '0';
           }
+          data.record.img = data.record.img_path;
           setFieldsValue({
             ...data.record,
           });
@@ -67,6 +68,9 @@
       async function handleSubmit() {
         try {
           const values = await validate();
+          if (values.img != undefined) {
+            values.img_path = values.img;
+          }
           setModalProps({ confirmLoading: true });
           // TODO custom api
           !unref(isUpdate)

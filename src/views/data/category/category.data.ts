@@ -6,11 +6,13 @@ export const columns: BasicColumn[] = [
     title: 'id',
     dataIndex: 'id',
     align: 'left',
+    width: '40%',
   },
   {
     title: '分类名称',
     dataIndex: 'name',
     align: 'left',
+    width: '50%',
   },
   {
     title: '排序',
@@ -20,10 +22,12 @@ export const columns: BasicColumn[] = [
   {
     title: '创建时间',
     dataIndex: 'create_time',
+    width: 100,
   },
   {
     title: '备注',
     dataIndex: 'memo',
+    width: 50,
   },
 ];
 
