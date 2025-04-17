@@ -172,6 +172,13 @@
       const task_type = ref('-1');
       const taskOptions = ref<Recordable>();
       const userStore = useUserStore();
+      class CompositeKey<T1, T2> {
+        constructor(public key1: T1, public key2: T2) {}
+
+        toString(): string {
+          return `${this.key1}:${this.key2}`;
+        }
+      }
       watch(
         fileListRef,
         (newValue) => {
@@ -773,15 +780,23 @@
             var infoIDs = new Map<string, number>();
             var infoPathNames = new Map<string, number>();
             for (let index = 0; index < res.length; index++) {
-              infoIDs.set(res[index].name, res[index].id);
-              infoPathNames.set(res[index].name, res[index].pathName);
+              var key = new CompositeKey<string, number>(
+                res[index].categories_ids,
+                res[index].name,
+              );
+              infoIDs.set(key.toString(), res[index].id);
+              infoPathNames.set(key.toString(), res[index].pathName);
             }
             for (let index = 0; index < fileListRef.value.length; index++) {
-              let info_id = infoIDs.get(fileListRef.value[index].h_name);
+              var key = new CompositeKey<string, number>(
+                fileListRef.value[index].categories,
+                fileListRef.value[index].h_name,
+              );
+              let info_id = infoIDs.get(key.toString());
               if (info_id) {
                 fileListRef.value[index].info_id = info_id;
               }
-              let path = infoPathNames.get(fileListRef.value[index].h_name);
+              let path = infoPathNames.get(key.toString());
               if (path) {
                 fileListRef.value[index].pathName = path;
               }
@@ -912,7 +927,7 @@
               throw new Error('列数不为22');
             }
             if (numRows > 303) {
-              throw new Error('列数大于100');
+              throw new Error('行数大于300');
             }
 
             const excelJsonData = XLSX.utils.sheet_to_json(sheet, {

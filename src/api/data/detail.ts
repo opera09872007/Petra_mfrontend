@@ -5,6 +5,7 @@ enum Api {
   imageDealTask = '/data/details/image-deal-task/',
   BatchCreate = '/data/details/batch-create/',
   BatchUpdate = '/data/details/batch-update/',
+  BatchUpdateImgs = '/data/details/batch-update-img/',
 }
 import { DetailPageParams, DetailPageListGetResultModel } from '../model/dataModel';
 // Get personal center-basic settings
@@ -65,3 +66,6 @@ export const detailBatchAddApi = (datas: number[], type: number) =>
 
 export const detailBatchUploadHtmlFileApi = (datas: any) =>
   defHttp.post<void>({ url: Api.BatchUpdate, params: datas });
+
+export const detailBatchUploadImgFileApi = (datas: any) =>
+  defHttp.post<void>({ url: Api.BatchUpdateImgs, params: datas });

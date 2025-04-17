@@ -24,7 +24,11 @@
   import { isArray } from '/@/utils/is';
   import UploadModal from './UploadModal.vue';
   import { useMessage } from '/@/hooks/web/useMessage';
-  import { detailBatchAddApi, detailBatchUploadHtmlFileApi } from '/@/api/data/detail';
+  import {
+    detailBatchAddApi,
+    detailBatchUploadHtmlFileApi,
+    detailBatchUploadImgFileApi,
+  } from '/@/api/data/detail';
   import { getImgTypeByInfoIdList } from '/@/api/data/info';
 
   export default defineComponent({
@@ -110,7 +114,7 @@
             },
           });
           const batchSize = 10;
-          await uploadInBatches(fileListArray, batchSize);
+          await uploadInBatches(fileListArray, batchSize, dataList);
           emit('change', 'success');
         } catch (error) {
           createMessage.error('上传失败，请重试或联系管理员');
@@ -119,7 +123,7 @@
         handleModal(false);
       }
 
-      async function uploadInBatches(fileListArray, batchSize) {
+      async function uploadInBatches(fileListArray, batchSize, dataList) {
         async function uploadBatch(batch) {
           const formData = new FormData();
           for (let file of batch) {
@@ -132,7 +136,30 @@
             throw new Error('上传出错');
           }
         }
+        async function uploadBatchImg(batch) {
+          const info_ids = [];
+          for (let file of batch) {
+            info_ids.push(file.info_id);
+          }
+          const new_info_ids = Array.from(new Set(info_ids));
+          const response = await detailBatchUploadImgFileApi(new_info_ids);
 
+          if (response !== '1') {
+            throw new Error('上传出错');
+          }
+        }
+        if (fileListArray.length === 0) {
+          for (let i = 0; i < dataList.length; i += batchSize) {
+            const batch = dataList.slice(i, i + batchSize);
+            try {
+              await uploadBatchImg(batch);
+            } catch (error) {
+              console.error('上传失败，请重试或联系管理员 ' + i, error);
+              createMessage.error('上传失败，请重试或联系管理员');
+              throw new Error('上传出错');
+            }
+          }
+        }
         for (let i = 0; i < fileListArray.length; i += batchSize) {
           const batch = fileListArray.slice(i, i + batchSize);
           try {

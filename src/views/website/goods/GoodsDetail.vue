@@ -153,7 +153,6 @@
         transferRef,
       };
     },
-    data() {},
   });
 </script>
 

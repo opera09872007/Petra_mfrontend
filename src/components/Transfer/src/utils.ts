@@ -117,17 +117,47 @@ export function handleLeftTreeData(
   targetKeys: string[],
   direction = 'right',
 ): TreeDataItem[] {
-  data.forEach((item) => {
-    if (direction === 'right') {
-      item.disabled = targetKeys.includes(item.key);
-    } else if (direction === 'left') {
-      if (item.disabled && targetKeys.includes(item.key)) item.disabled = false;
+  if (direction === 'right') {
+    // 递归处理每个节点
+    function processNode(node: TreeDataItem): boolean {
+      if (!node.children || node.children.length === 0) {
+        // 叶子节点：如果在 targetKeys 中，则禁用并返回 true
+        const isSelected = targetKeys.includes(node.key);
+        node.disabled = isSelected;
+        return isSelected;
+      }
+
+      // 非叶子节点：检查所有子节点
+      const childResults = node.children.map(processNode);
+      const allChildrenSelected = childResults.every(Boolean);
+
+      // 只有当所有子节点都被选中时，才禁用父节点
+      // 当部分子节点被选中时，父节点保持半选状态并可操作
+      node.disabled = allChildrenSelected;
+
+      return allChildrenSelected;
     }
-    if (item.children) handleLeftTreeData(item.children, targetKeys, direction);
-  });
+
+    data.forEach(processNode);
+  } else if (direction === 'left') {
+    // 获取包含所有父节点的完整 key 列表
+    const allRelatedKeys = findAllRelatedKeys(data, targetKeys);
+
+    function enableNodes(node: TreeDataItem) {
+      if (node.disabled && allRelatedKeys.includes(node.key)) {
+        node.disabled = false;
+      }
+
+      if (node.children) {
+        node.children.forEach(enableNodes);
+      }
+    }
+
+    data.forEach(enableNodes);
+  }
+
   return data;
 }
-
 /**
  * 处理右侧树数据
  * @param data
@@ -139,28 +169,33 @@ export function handleRightTreeData(
   targetKeys: string[],
   direction = 'right',
 ): TreeDataItem[] {
+  // 获取包含所有父节点的完整 key 列表
+  const allRelatedKeys = findAllRelatedKeys(data, targetKeys);
+
   const list = treeToList(data);
   const arr: TreeDataItem[] = [];
   const tree: TreeDataItem[] = [];
+
   list.forEach((item) => {
     if (direction === 'right') {
-      if (targetKeys.includes(item.key)) {
+      // 使用完整的 key 列表检查节点是否应该包含
+      if (allRelatedKeys.includes(item.key)) {
         const content = { ...item };
         if (content.children) delete content.children;
         arr.push({ ...content });
       }
     } else if (direction === 'left') {
-      if (!targetKeys.includes(item.key)) {
+      if (!allRelatedKeys.includes(item.key)) {
         const content = { ...item };
         if (content.children) delete content.children;
         arr.push({ ...content });
       }
     }
   });
+
   listToTree(arr, tree, 0);
   return tree;
 }
-
 /**
  * 树数据展平
  * @param list
@@ -172,4 +207,42 @@ export function flatten(list: TreeDataItem[], dataSource: TreeDataItem[]): TreeD
     if (item.children) flatten(item.children, dataSource);
   });
   return dataSource;
+}
+
+/**
+ * 查找所有父节点 key
+ * @param data 树数据
+ * @param leafKeys 叶子节点 key 数组
+ * @returns 所有相关节点 key (包括叶子节点和它们的所有父节点)
+ */
+export function findAllRelatedKeys(data: TreeDataItem[], leafKeys: string[]): string[] {
+  // 构建父节点映射
+  const parentMap = new Map<string, string>();
+
+  function buildParentMap(nodes: TreeDataItem[], parentKey?: string) {
+    for (const node of nodes) {
+      if (parentKey) {
+        parentMap.set(node.key, parentKey);
+      }
+      if (node.children?.length) {
+        buildParentMap(node.children, node.key);
+      }
+    }
+  }
+
+  buildParentMap(data);
+
+  // 收集所有相关节点
+  const allKeys = new Set<string>(leafKeys);
+
+  for (const key of leafKeys) {
+    let currentKey = key;
+    while (parentMap.has(currentKey)) {
+      const parentKey = parentMap.get(currentKey)!;
+      allKeys.add(parentKey);
+      currentKey = parentKey;
+    }
+  }
+
+  return Array.from(allKeys);
 }

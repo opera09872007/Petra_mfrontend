@@ -8,6 +8,7 @@ import {
   handleRightTreeData,
   isChecked,
   uniqueTree,
+  findAllRelatedKeys,
 } from './utils';
 import type { TreeDataItem } from './types';
 
@@ -101,9 +102,10 @@ export function useTreeTransfer(props: Props): UseTreeTransfer {
 
   /** 处理编辑数据 */
   function processEditData(): void {
-    state.leftCheckedAllKey = props.editKey;
-    state.rightExpandedKey = props.editKey;
-    state.targetKeys = props.editKey;
+    const allRelatedKeys = findAllRelatedKeys(props.treeData, props.editKey);
+    state.leftCheckedAllKey = allRelatedKeys;
+    state.rightExpandedKey = allRelatedKeys;
+    state.targetKeys = allRelatedKeys;
     state.rightTreeData = handleRightTreeData(cloneDeep(props.treeData), props.editKey);
 
     getDeepList(state.deepList, props.treeData);
