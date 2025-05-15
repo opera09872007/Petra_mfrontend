@@ -29,29 +29,56 @@ export function treeToList(tree: TreeDataItem[], hasChildren = false): TreeDataI
 }
 
 /**
- * 数组转树
- * @param list
- * @param tree
- * @param parent
- * @param key
+ * 数组转树 (高效迭代版本)
+ * @param list 扁平列表
+ * @param tree 目标树数组
+ * @param parent 父节点ID
+ * @param key 父节点引用字段名
  */
 export function listToTree(
   list: TreeDataItem[],
-  tree: TreeDataItem[],
+  tree: TreeDataItem[] = [],
   parent = 0,
   key = 'parent',
 ): TreeDataItem[] {
-  list.forEach((item) => {
-    if (item[key] === parent) {
-      const child: TreeDataItem = {
-        ...item,
-        children: [],
-      };
-      listToTree(list, child.children as TreeDataItem[], item.id, key);
-      if (!child.children?.length) delete child.children;
-      tree.push(child);
+  // 清空传入的树数组
+  tree.length = 0;
+
+  // 创建节点映射，以便O(1)时间复杂度查找
+  const nodeMap = new Map<number | string, TreeDataItem>();
+
+  // 为每个项创建节点，并存储在映射中
+  const allNodes: TreeDataItem[] = [];
+  for (const item of list) {
+    const node = { ...item };
+    nodeMap.set(item.id, node);
+    allNodes.push(node);
+  }
+
+  // 按照父子关系构建树
+  for (const node of allNodes) {
+    if (node[key] === parent) {
+      // 这是根节点
+      tree.push(node);
+    } else {
+      // 这是子节点
+      const parentNode = nodeMap.get(node[key]);
+      if (parentNode) {
+        if (!parentNode.children) {
+          parentNode.children = [];
+        }
+        parentNode.children.push(node);
+      }
     }
-  });
+  }
+
+  // 清理没有子节点的children数组
+  for (const node of allNodes) {
+    if (node.children && node.children.length === 0) {
+      delete node.children;
+    }
+  }
+
   return tree;
 }
 
@@ -185,7 +212,7 @@ export function handleRightTreeData(
         arr.push({ ...content });
       }
     } else if (direction === 'left') {
-      if (!allRelatedKeys.includes(item.key)) {
+      if (!targetKeys.includes(item.key)) {
         const content = { ...item };
         if (content.children) delete content.children;
         arr.push({ ...content });

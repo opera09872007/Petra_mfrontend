@@ -156,6 +156,7 @@
 
       const gridOptions = computed<VxeGridProps>(() => ({
         border: false,
+        stripe: true,
         height: tableHeight.value,
         loading: loading.value,
         data: tableData.value,
@@ -180,6 +181,7 @@
             buttons: 'buttons',
           },
         },
+        rowConfig: { isHover: true },
         treeConfig: { parentField: 'parent', rowField: 'id', transform: true },
         scrollX: { gt: 60, enabled: true },
         scrollY: { gt: 60, enabled: true },

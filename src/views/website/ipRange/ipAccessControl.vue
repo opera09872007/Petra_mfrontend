@@ -498,16 +498,7 @@
             }
 
             // 检查模式相关字段
-            if (mode.value === 'category') {
-              const cateIds = groupTransfers.value[index]
-                ? groupTransfers.value[index].emitKeys
-                : [];
-              if (!cateIds || cateIds.length === 0) {
-                isValid = false;
-                errorMessage = `组 ${index + 1} 的分类选择不能为空`;
-                return;
-              }
-            } else if (mode.value === 'period') {
+            if (mode.value === 'period') {
               if (!group.selectedPeriod || group.selectedPeriod.length === 0) {
                 isValid = false;
                 errorMessage = `组 ${index + 1} 的期数选择不能为空`;
@@ -532,7 +523,10 @@
             if (mode.value === 'category') {
               // 使用组件的emitKeys作为分类ID
               const transfer = categoryTransfers[index];
-              groupData.cateIds = transfer ? transfer.emitKeys : [];
+              groupData.cateIds =
+                transfer && transfer.emitKeys && transfer.emitKeys.length > 0
+                  ? transfer.emitKeys
+                  : -1;
 
               // 同时更新组的editCateIds，以便下次渲染
               if (transfer) {
