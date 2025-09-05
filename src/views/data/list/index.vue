@@ -8,12 +8,12 @@
           :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
           placeholder="资源库"
           :allow-clear="false"
-          tree-default-expand-all
           :tree-data="repData"
           :fieldNames="{ label: 'title', value: 'id' }"
           :loading="treeLoading"
           :onSelect="loadTreeData"
           treeNodeFilterProp="title"
+          :virtual="true"
         />
       </div>
       <div class="p-2 bg-white">
@@ -236,7 +236,7 @@
   </PageWrapper>
 </template>
 <script lang="ts">
-  import { defineComponent, reactive, ref, onMounted, nextTick, unref } from 'vue';
+  import { defineComponent, reactive, ref, onMounted } from 'vue';
 
   import { BasicTree, TreeItem, TreeActionType } from '/@/components/Tree/index';
   import { BasicTable, useTable, TableAction } from '/@/components/Table';
@@ -434,9 +434,9 @@
           cateTreeData.value = (await getCateByResIdApi(value)) as unknown as TreeItem[];
           await timer(500);
           treeLoading.value = false;
-          nextTick(() => {
-            unref(asyncExpandTreeRef)?.expandAll(true);
-          });
+          // nextTick(() => {
+          //   unref(asyncExpandTreeRef)?.expandAll(true);
+          // });
 
           searchInfo.repId = value;
           const res = await getNameAndPathApi(value);
