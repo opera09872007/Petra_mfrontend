@@ -84,7 +84,7 @@
       const getUserInfo = computed(() => {
         var { realName = '', avatar, desc, image } = userStore.getUserInfo || {};
         if (image != undefined) {
-          image = image.replace(/minio1/, imgUrl);
+          image = image.replace(/s3/, imgUrl);
         } else {
           image = headerImg;
         }
@@ -92,7 +92,7 @@
           realName,
           avatar: avatar || headerImg,
           desc,
-          image: image.replace(/minio1/, imgUrl),
+          image: image.replace(/s3/, imgUrl),
         };
       });
 

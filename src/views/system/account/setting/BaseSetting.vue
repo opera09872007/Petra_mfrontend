@@ -62,7 +62,7 @@
 
       const avatar = computed(() => {
         const { image } = userStore.getUserInfo;
-        return image.replace(/minio1/, imgUrl) || headerImg;
+        return image.replace(/s3/, imgUrl) || headerImg;
       });
 
       function updateAvatar(src: string) {

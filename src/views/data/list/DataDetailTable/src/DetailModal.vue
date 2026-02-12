@@ -28,17 +28,14 @@
       </Upload>
     </div>
     <!-- eslint-disable vue/no-v-html -->
-    <div
-      id="doc_panle"
-      style="height: 333px; width: 100%; overflow: auto"
-      v-html="content"
-      :key="componentKey"
-    >
+
+    <div id="content" :style="{ height: '333px', width: '100%' }">
+      <div id="doc_panle" v-html="content" :key="componentKey"></div>
     </div>
   </BasicModal>
 </template>
 <script lang="ts">
-  import { defineComponent, ref, computed, unref } from 'vue';
+  import { defineComponent, ref, computed, unref, watch, nextTick } from 'vue';
   import { Upload } from 'ant-design-vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
   import { BasicForm, useForm } from '/@/components/Form/index';
@@ -111,6 +108,13 @@
           });
         }
       });
+      watch(content, () => {
+        nextTick(() => {
+          setTimeout(() => {
+            adjustLineHeight();
+          }, 0);
+        });
+      });
       function getProcessFile(file) {
         ProcessFile.value = file;
         IsFilePondInitial.value = false;
@@ -152,6 +156,23 @@
             let docRef = document.getElementById('doc_panle');
             renderAsync(blob, docRef, null, docxOptions).then(() => {
               docFile.value = blob;
+              const docPanel = document.querySelector('section.doc_panle');
+
+              const spanTags = docPanel.querySelectorAll('span');
+
+              spanTags.forEach((span) => {
+                if (span.textContent) {
+                  span.textContent = span.textContent.replace(/ /g, '\u2002');
+                }
+              });
+              docPanel.value = document.querySelector('section.doc_panle');
+              if (docPanel) {
+                docPanel.style.transform = 'scale(1)';
+                docPanel.style.transformOrigin = 'top right';
+                docPanel.style.width = '100%';
+                docPanel.style.padding = '20px 20px';
+                adjustLineHeight();
+              }
             });
           };
           reader.readAsArrayBuffer(file);
@@ -161,7 +182,54 @@
           docFile.value = '';
         }
       }
+      async function adjustLineHeight() {
+        let docRef = document.getElementById('doc_panle');
+        const paragraphs = docRef.querySelectorAll('p');
 
+        for (let i = 0; i < paragraphs.length - 1; i++) {
+          const currentP = paragraphs[i]; // 右侧的p标签
+          const nextP = paragraphs[i + 1]; // 左侧的p标签
+
+          const currentSpans = currentP.querySelectorAll('span');
+          const nextSpans = nextP.querySelectorAll('span');
+
+          if (currentSpans.length === 0 || nextSpans.length === 0) continue;
+
+          // 找到当前p（右侧）中最靠左的span边界
+          let currentMinLeft = Infinity;
+          currentSpans.forEach((span) => {
+            const left = span.offsetLeft;
+            currentMinLeft = Math.min(currentMinLeft, left);
+          });
+
+          // 找到下一个p（左侧）中最靠右的span边界
+          let nextMaxRight = -Infinity;
+          nextSpans.forEach((span) => {
+            const right = span.offsetLeft + span.offsetWidth;
+            nextMaxRight = Math.max(nextMaxRight, right);
+          });
+
+          // 计算间距：当前p的左边界 - 下一个p的右边界
+          // 在竖排从右向左布局中，正确的重叠检测：
+          const spacing = currentMinLeft - nextMaxRight;
+
+          if (spacing < 0) {
+            // 有重叠：当前p的左边界 < 下一个p的右边界
+            const maxOverlap = Math.abs(spacing);
+            const minSpacing = 2;
+            const neededAdjustment = maxOverlap + minSpacing;
+            const currentMargin = parseFloat(getComputedStyle(currentP).marginLeft) || 0;
+            const maxAdjustment = 400;
+            const adjustment = Math.min(neededAdjustment, maxAdjustment);
+            const newMargin = currentMargin + adjustment;
+
+            currentP.style.marginLeft = `${newMargin}px`;
+            console.log(`p${i} 边界重叠: ${maxOverlap}px, 调整: ${adjustment}px`);
+          } else {
+            console.log(`p${i} 无重叠, 边界间距: ${spacing}px`);
+          }
+        }
+      }
       async function handleSubmit() {
         try {
           const values = await validate();
@@ -302,6 +370,30 @@
   });
 </script>
 <style scoped>
+  #content {
+    writing-mode: vertical-rl;
+    overflow: auto;
+    display: flex;
+  }
+
+  .doc_panle {
+    width: 100% !important;
+    height: 100% !important;
+    white-space: pre !important;
+  }
+
+  :deep(.doc_panle) {
+    overflow: auto !important;
+  }
+
+  .doc_panle span {
+    white-space: pre !important;
+  }
+
+  .doc_panle span div {
+    display: inline-block;
+  }
+
   :deep(.doc_panle-wrapper) {
     background-color: #fff;
     padding: 0;
@@ -315,11 +407,46 @@
     margin-bottom: 0;
   }
 
-  :deep(.doc_panle) {
-    padding: 0rem !important;
-  }
-
   :deep(.doc_panle) img {
     display: inline !important;
+  }
+
+  #content2 {
+    font-family: '';
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  #content2 > p {
+    margin: 0px 0px 0px 8px;
+    line-height: 2;
+  }
+
+  p.a {
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  #content > p > span > img {
+    margin: 0px 7px 0px 0px;
+  }
+
+  #content > p > span > a > img {
+    margin: 0px 7px 0px 0px;
+  }
+
+  #content > p > span > span > img {
+    margin: 0px 7px 0px 0px;
+  }
+
+  #content > p > a > img {
+    margin: 0px 7px 0px 0px;
+  }
+
+  #content > p > img {
+    margin: 0px 7px 0px 0px;
   }
 </style>

@@ -155,6 +155,8 @@ const transform: AxiosTransform = {
         ? `${options.authenticationScheme} ${token}`
         : token;
     }
+    //请求标识
+    (config as Recordable).headers['X-Request-Source'] = 'backend';
     return config;
   },
 
